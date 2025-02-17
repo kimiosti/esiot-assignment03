@@ -6,3 +6,9 @@
 
 #Internal PlatformIO gitignores
 */.gitignore
+
+#LaTex build files
+*.aux
+*.log
+*.gz
+*.toc
