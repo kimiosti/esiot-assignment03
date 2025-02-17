@@ -12,6 +12,7 @@
 *.log
 *.gz
 *.toc
+*.out
 
 #Images
 *.png
