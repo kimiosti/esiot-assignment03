@@ -12,3 +12,9 @@
 *.log
 *.gz
 *.toc
+
+#Images
+*.png
+
+#UML text files
+*/uml/
