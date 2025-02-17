@@ -1,0 +1,8 @@
+#VSCode build files
+*/.vscode/
+
+#PlatformIO build files
+*/.pio/
+
+#Internal PlatformIO gitignores
+*/.gitignore
