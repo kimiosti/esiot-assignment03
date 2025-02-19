@@ -15,27 +15,60 @@
 	\tableofcontents
 	
 	\chapter{System Requirements}
-	The system is a smart IoT-based temperature monitor. In particular, it measures a closed environment's temperature at any given time, and controls a window connected to a motor to properly ventilate the room in case of critical temperatures. It also implements a manual mode, which can be activated via a button on the Window Controller, or via a web-based Operator Dashboard, that allows an operator to physically control the window opening angle thanks to a potentiometer attached to the Window Controller.
+	The system is a smart IoT-based temperature monitor. In particular, it measures a closed environment's temperature at any given time, and controls a window connected to a motor to properly ventilate the room in case of critical temperatures. It also implements a manual mode, which can be activated via a button on the \textit{Window Controller}, or via a web-based \textit{Operator Dashboard}, that allows an operator to physically control the window opening angle thanks to a potentiometer attached to the \textit{Window Controller}.
 	\section{Temperature Monitor}
-	It's the main system component. It periodically measures the room's temperature, and communicates it to the Control Unit, which is responsible of controlling the other component's behavior according to the valued registered by this subsystem. The frequency of the measurements depends on the state of the system, which is stored in the Control Unit and is communicated to this component in real-time. It's connected to the Control Unit via MQTT, and must include a LED signaling whether the connection is properly established.
+	It's the main system component. It periodically measures the room's temperature, and communicates it to the \textit{Control Unit}, which is responsible of controlling the other component's behavior according to the valued registered by this subsystem. The frequency of the measurements depends on the state of the system, which is stored in the \textit{Control Unit} and is communicated to this component in real-time. It's connected to the \textit{Control Unit} via the \textit{MQTT} protocol, and must include a LED signaling whether the connection is properly established.
 	\section{Window Controller}
-	It's the in-place operator interface. It's responsible of physically triggering the window movement, according to the values communicated by the Control Unit if the system is in automatic mode, or according to the value controlled by the potentiometer if the system is in manual mode. It has a button to switch between these two modes, and it also has a screen that tells the operator the state of the system at any given time. All necessary info is communicated by the Control Unit via Serial communication.
+	It's the in-place operator interface. It's responsible of physically triggering the window movement, according to the values communicated by the \textit{Control Unit} if the system is in automatic mode, or according to the value controlled by the potentiometer if the system is in manual mode. It has a button to switch between these two modes, and it also has a screen that tells the operator the state of the system at any given time. All necessary info is communicated by the \textit{Control Unit} via Serial communication.
 	\section{Operator Dashboard}
-	It's a web-based user interface that allows operators to work remotely on the system. It shows a graph representing the current state of the system and a brief history of the last measurements, sided by a statistic showing the average, minimum and maximum values of the last period of time. In addition to this info, it exposes a simple operator interface which allows the user to switch between manual and automatic mode, as well as to restore the system status in case an alarm was triggered. It communicates with the Control Unit via HTTP in order to reflect user actions on the actual in-place subsystems.
+	It's a web-based user interface that allows operators to work remotely on the system. It shows a graph representing the current state of the system and a brief history of the last measurements, sided by a statistic showing the average, minimum and maximum values in the last period of time. In addition to this info, it exposes a simple operator interface which allows the user to switch between manual and automatic mode, as well as to restore the system status in case an alarm was triggered. It communicates with the \textit{Control Unit} via the \textit{HTTP} protocol in order to reflect user actions on the actual in-place subsystems.
 	\section{Control Unit}
-	It's the core of the entire system, and it serves as a mediator between subsystem interactions. Its main function is to track the system state and all info related to the measurements and to the current operating mode (manual or automatic). It also determines the sampling frequency for the Temperature Monitor according to the current measure, and the window opening percentage according to the system state (if in automatic mode). It's also responsible of storing all system data, including the last measurements that the Dashboard shows in its graph, and the average, minimum and maximum values that are shown to the operator.
+	It's the core of the entire system, and it serves as a mediator between subsystem interactions. Its main function is to track the system state and all info related to the measurements and to the current operating mode (manual or automatic). It also determines the sampling frequency for the \textit{Temperature Monitor} according to the current measure, and the window opening percentage according to the system state (if in automatic mode). It's also responsible of storing all system data, including the last measurements that the Dashboard shows in its graph, and the average, minimum and maximum values that are shown to the operator.
 	
 	\chapter{System Architecture}
-	This system can be realized following the MVC architectural pattern. In particular, the Temperature Monitor and the Window Controller are the Model (since they sense real-world values and actuate the system behavior on the real application domain), while the Control Unit serves as the Controller (tracking the system state and storing user-relevant data) and the Operator Dashboard serves as the View, presenting data to the user and offering an interface to reflect user actions on the Model.
+	This system can be structured dividing responsibilities according to the MVC architectural pattern.
+	\newline In particular, the Controller behavior is implemented by the \textbf{Control Unit}, while the main View component interfacing towards the user would be the \textit{Operator Dashboard}. The \textit{Temperature Monitor} is fully a Model component, since it samples the real-world status value and shares it with the \textit{Control Unit}. Finally, the \textit{Window Controller} can be considered to be almost completely Model, with a part of View in the Control Panel, which allows the user to switch mode between manual and automatic, and to control the window angle when in manual mode.
 	\section{Temperature Monitor}
-	This component can be modeled as a Finite State Machine. Its main duty is to periodically sample the room's temperature, and to send the collected data to the Control Unit. The sampling frequency varies according to its state, which depends on the measured temperature itself. It also implements a default behavior when the system is in manual mode, and eventually shows network errors when they occur. When the network goes down, it attempts reconnecting in order to restore its previous state.
-	\begin{figure}[H]
-		\centering{}
-		\includegraphics[width=\textwidth]{img/temp-monitor-fsm.png}
-		\caption{FSM modeling the Temperature Monitor behavior}
-		\label{img:temp-monitor-fsm}
-	\end{figure}
-	\section{Window Controller}
+	This subsystem's main feature is sampling the room's temperature with a given frequency. It's also responsible for sending that data to the \textit{Control Unit}, so it must include a component handling the subsystem connectivity to the back-end.
+	\newline Its detailed behavior can be described analyzing each sub-component with its responsibilities. Each sub-component can be modeled as a Task, and all Tasks run in parallel in the subsystem on which this part of the application is deployed.
+		\subsection{Temperature Measuring Task}
+		The central Task is the one responsible of actually measuring the temperature. It can be modeled as a Synchronous Finite State Machine.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/temp-monitor/temp-measuring-fsm.png}
+			\caption{FSM modeling the temperature measuring task behavior}
+			\label{img:temp-monitor/temp-measuring-fsm}
+		\end{figure}
+		It is clearly modeled - for clarity - how the state transitions in automatic mode are determined by the temperature values. But in reality, all state transitions are demanded by the \textit{Control Unit} according to the values that it receives from all components, since it is the central Controller for the application.
+		\newline Also, it is clearly modeled to be network-agnostic. Indeed, this sub-component is meant to measure at all times, and it will be a responsibility of the network-related tasks to retrieved the stored data when it's supposed to be shared.
+		\subsection{Connection Monitoring Task}
+		This task is the one responsible for monitoring the system connection state. It's supposed to check whether the component is still online, and when it's not, to try and reconnect. It works on two layers: the first one checks whether the system is connected to the Internet, and the higher one checks whether the \textit{MQTT} subscription is still on.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/temp-monitor/connection-monitoring-fsm.png}
+			\caption{FSM modeling the connection monitoring task behavior}
+			\label{img:temp-monitor/connection-monitoring-fsm}
+		\end{figure}
+		\subsection{Communication Task}
+		This task is responsible of communicating with the \textit{Control Unit} via the \textit{MQTT} connection set up by the \textit{Connection Monitoring Task}. It ensures that data is properly collected, assembled to form a message and sent to the \textit{Control Unit}. On the other hand, it's also responsible of receiving the response messages published by the \textit{Control Unit}, which can dictate the \textit{Temperature Measuring Task} state, and consequently its sampling frequency.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/temp-monitor/communication-fsm.png}
+			\caption{FSM modeling the communication task behavior}
+			\label{img:temp-monitor/communication-fsm}
+		\end{figure}
+		It's here clear how this task too is network agnostic: simply, when there is no connection or no active \textit{MQTT} subscription no messages are received - and the system therefore never goes to the \textit{Receiving} state - and the ones that are sent might be lost.
+		\subsection{LED Task}
+		This task's main responsibility is to represent to the user whether the sub-system is online.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/temp-monitor/led-fsm.png}
+			\caption{FSM modeling the LED task behavior}
+			\label{img:temp-monitor/led-fsm}
+		\end{figure}
+		In this scheme, it's obvious how this Task's state depends directly on the state of the \textit{Connection Monitoring Task}. In particular, the LED is shown as green only when the device is fully connected to the Internet and the \textit{MQTT} subscription is running properly.
+		\paragraph{Note} the sub-system's connection state is kept internally, and is not communicated to the \textit{Control Unit}. This because, architecturally speaking, the rest of the system is not concerned about this specific sub-system's connection state, since it would be simply cut out of the communication network. So, connection state is here only tracked to help the LED Task show the user the correct information, but the rest of the system - if well decoupled - is required to keep running even if the communication went down (or theoretically speaking, also if there were multiple devices tracking the temperature and connected to the same \textit{MQTT} topic and broker).
+	\section{Window Controller} % TO BE REVISED
 	Also the Window Controller can be modeled as a Finite State Machine. Its behavior depends on whether the system is in automatic or manual mode, independently from the Temperature Monitor Measurements. Since it exposes a control panel, as a Model component, it's not properly adhering to the MVC architectural pattern. On the other hand, though, it can be considered Model since all the actions performed by the control panel can be handled internally, communicating to the Controller only state transitions. So, it can be thought as a Model component to simplify and clarify the architectural software structure.
 	\begin{figure}[H]
 		\centering{}
@@ -43,9 +76,9 @@
 		\caption{FSM modeling the Window Controller behavior}
 		\label{img:window-controller-fsm}
 	\end{figure}
-	\section{Operator Dashboard}
+	\section{Operator Dashboard} %TO BE REVISED, MIGHT BE FINE
 	The Operator Dashboard serves here as a remote user interface to control the whole system. It offers a graphical interface in order to present to the user relevant data with a certain clarity and processing, in order to simplify their operations. It's based on a web interface, and shows various components, which can represent plain output or be associated to input commands. In particular, it offers the equivalent of the Window Controller in-place panel, with a button to switch between manual and automatic mode, and it adds to that a button to register that an alarm situation has been restored. It communicates via HTTP to the Control Unit, which is then responsible of reflecting user actions on the Model.
-	\section{Control Unit}
+	\section{Control Unit} % TO BE REVISED, MIGHT BE FINE
 	This subsystem serves as the application Controller. It exchanges data with all subsystems, storing internally what's relevant for the user in order to represent it properly, and ensures the user input is effective on the real-world domain. It's the core of the application, and therefore tracks the state of the other subsystems, and bridges among the various communication protocols (in this case Serial, HTTP and MQTT) to allow effective data exchange between subsystems. It will be made of various components itself, and its main goal is to decouple the other subsystems, trying to minimize inner coupling between its own components.
 	\begin{figure}[H]
 		\centering{}
