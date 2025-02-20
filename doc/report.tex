@@ -105,7 +105,7 @@
 			\caption{FSM modeling the communication task behavior}
 			\label{img:window-controller/communication-fsm}
 		\end{figure}
-		The Communication Task checks for new messages periodically, and expects to receive each period a message containing the current opening level, the current mode and the current temperature. On the other hand, it periodically sends a message containing the user input, representing whether the button has been pressed within the last period and the current value input for the window opening level. Obviously, it's a responsibility of the \textit{Control Unit}, as the system's Controller, to handle user input data according to the state (e.g. to discard the current input value if the system is in automatic mode).
+		The Communication Task checks for new messages periodically, and expects to receive each period a message containing the current opening level, the current mode and the current temperature. On the other hand, it periodically sends a message containing a "dirty" state, which is the one requested by the user via the operating panel. It's then a \textit{Control Unit}'s responsibility to properly modify the actual state of the system.
 	\section{Operator Dashboard}
 	The \textit{Operator Dashboard} serves as a remote user interface to control the system. In particular it offers a graphical representation of the system's current state - which includes a graph of temperature history, the current average, maximum and minimum temperature values in the last period of time, the system operating mode and the window opening level. In addition to this, it allows the operator to switch between automatic and manual modes, as well as a button to restore the system after solving an issue which caused an alarm. It's connected to the \textit{Control Unit} via \textit{HTTP}.
 	\section{Control Unit}
@@ -129,7 +129,9 @@
 		\caption{Detailed circuit for the window controller sub-system}
 		\label{img:window-controller/circuit}
 	\end{figure}
-	In this scheme, available at \href{https://www.tinkercad.com/things/2nadVXk0wQ5-esiot-assignment-03-arduino?sharecode=t4LayAw_Rc1SNLqdSHt3uK_EuT6TttEPHQjHAwEp-Zc}{\textit{this link}}, is depicted the detailed circuit for the Window Controller.
+	In this scheme, available at \href{https://www.tinkercad.com/things/2nadVXk0wQ5-esiot-assignment-03-arduino?sharecode=t4LayAw_Rc1SNLqdSHt3uK_EuT6TttEPHQjHAwEp-Zc}{\textit{this link}}, is depicted the detailed circuit for the \textit{Window Controller}.
+	\newline One of the main concerns here is to implement our own scheduler, since Arduino doesn't support any kind of Operating System. This can be easily achieved implementing a round robin non-preemptive scheduler, since all Tasks have finite - and relatively short - execution routines. In addition to that, this kind of scheduler also defines implicit priorities among tasks, which can be used to the developer's advantage deploying tasks in such a way to avoid invalid data reads (e.g. collecting input and forwarding it to the \textit{Control Unit} after having actuated the consistent data collected earlier). Attention must be paid to defining the Tasks' periods, in order to avoid exceeding deadlines on one hand and event loss on the other.
+	\newline Another concern is the data format to send on the \textit{Serial Line}. For better clarity, messages are structured in the same way both sides: they are formatted as a JSON object containing three values: temperature, mode and opening level. This means that the \textit{Control Unit} dictates the system's current values, and the \textit{Window Controller} sends back a partial representation of the state that would be the result of its input processing. The safe and consistent handling of this partial and "dirty" data is delegated to the \textit{Control Unit}.
 	\section{Operator Dashboard}
 	\section{Control Unit}
 	
