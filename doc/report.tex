@@ -69,13 +69,43 @@
 		In this scheme, it's obvious how this Task's state depends directly on the state of the \textit{Connection Monitoring Task}. In particular, the LED is shown as green only when the device is fully connected to the Internet and the \textit{MQTT} subscription is running properly.
 		\paragraph{Note} the sub-system's connection state is kept internally, and is not communicated to the \textit{Control Unit}. This because, architecturally speaking, the rest of the system is not concerned about this specific sub-system's connection state, since it would be simply cut out of the communication network. So, connection state is here only tracked to help the LED Task show the user the correct information, but the rest of the system - if well decoupled - is required to keep running even if the communication went down (or theoretically speaking, also if there were multiple devices tracking the temperature and connected to the same \textit{MQTT} topic and broker).
 	\section{Window Controller} % TO BE REVISED
-	Also the Window Controller can be modeled as a Finite State Machine. Its behavior depends on whether the system is in automatic or manual mode, independently from the Temperature Monitor Measurements. Since it exposes a control panel, as a Model component, it's not properly adhering to the MVC architectural pattern. On the other hand, though, it can be considered Model since all the actions performed by the control panel can be handled internally, communicating to the Controller only state transitions. So, it can be thought as a Model component to simplify and clarify the architectural software structure.
-	\begin{figure}[H]
-		\centering{}
-		\includegraphics[scale=0.5]{img/window-controller-fsm.png}
-		\caption{FSM modeling the Window Controller behavior}
-		\label{img:window-controller-fsm}
-	\end{figure}
+	This component's main behavior is to actuate the window opening. In doing so, it's connected to the \textit{Control Unit} via \textit{Serial Line} and it exposes a little operator panel to directly manipulate the window, switching between manual or automatic mode and controlling the window opening level, if in manual mode. Its behavior can be divided in Tasks, running concurrently to achieve the global behavior (it will be discussed in further detail how it's not actually concurrent, since it runs on a single-core \textit{Arduino UNO} board).
+		\subsection{Window Controlling Task}
+		This Task is responsible of actuating the system's behavior on the actual window. Its only duty is to set the window state each period, querying the \textit{Communication Task} to retrieve the current opening value signaled by the \textit{Control Unit}.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/window-controller/window-controlling-fsm.png}
+			\caption{FSM modeling the window controlling task behavior}
+			\label{img:window-controller/window-controlling-fsm}
+		\end{figure}
+		It's obvious how this task's behavior is agnostic of the state of the rest of the system. Simply, each period it retrieves the last received opening value (which is managed completely by the \textit{Control Unit} for consistency reasons) and actuates it to the window via the servomotor.
+		\subsection{Operator Input Task}
+		This Task is responsible of collecting user input, and of communicating it to the \textit{Control Unit} to modify the entire system's state accordingly.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/window-controller/operator-input-fsm.png}
+			\caption{FSM modeling the operator input task behavior}
+			\label{img:window-controller/operator-input-fsm}
+		\end{figure}
+		In this scheme it's underlined how this tasks accepts operator input via the potentiometer only in manual mode. For better consistency though, data is here not directly sent to the \textit{Window Controlling Task}, but rather a decoupling level is inserted between the two, centralizing state handling responsibilities in the \textit{Control Unit}.
+		\subsection{Operator Output Task}
+		This task is responsible of showing the operator some information about the system's current state. Obviously, for the reasons described above, the system's state is described as received from the \textit{Control Unit}, delegating it all data consistency issues.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/window-controller/operator-output-fsm.png}
+			\caption{FSM modeling the Operator Output Task}
+			\label{img:window-controller/operator-output-fsm}
+		\end{figure}
+		In this scheme, it's depicted how this task is showing different information according to the state of the system. On the other hand, state transitions are not handled in any way by this task, and the \textit{modeSwitch} is some input received by the \textit{Control Unit}.
+		\subsection{Communication Task}
+		This task is responsible of communicating via the \textit{Serial Line} with the \textit{Control Unit}. It's a core feature of this sub-system, since correct communication ensures data (and more importantly behavior) consistency when translating computation into actuation.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/window-controller/communication-fsm.png}
+			\caption{FSM modeling the communication task behavior}
+			\label{img:window-controller/communication-fsm}
+		\end{figure}
+		The Communication Task checks for new messages periodically, and expects to receive each period a message containing the current opening level, the current mode and the current temperature. On the other hand, it periodically sends a message containing the user input, representing whether the button has been pressed within the last period and the current value input for the window opening level. Obviously, it's a responsibility of the \textit{Control Unit}, as the system's Controller, to handle user input data according to the state (e.g. to discard the current input value if the system is in automatic mode).
 	\section{Operator Dashboard} %TO BE REVISED, MIGHT BE FINE
 	The Operator Dashboard serves here as a remote user interface to control the whole system. It offers a graphical interface in order to present to the user relevant data with a certain clarity and processing, in order to simplify their operations. It's based on a web interface, and shows various components, which can represent plain output or be associated to input commands. In particular, it offers the equivalent of the Window Controller in-place panel, with a button to switch between manual and automatic mode, and it adds to that a button to register that an alarm situation has been restored. It communicates via HTTP to the Control Unit, which is then responsible of reflecting user actions on the Model.
 	\section{Control Unit} % TO BE REVISED, MIGHT BE FINE
