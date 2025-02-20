@@ -68,7 +68,7 @@
 		\end{figure}
 		In this scheme, it's obvious how this Task's state depends directly on the state of the \textit{Connection Monitoring Task}. In particular, the LED is shown as green only when the device is fully connected to the Internet and the \textit{MQTT} subscription is running properly.
 		\paragraph{Note} the sub-system's connection state is kept internally, and is not communicated to the \textit{Control Unit}. This because, architecturally speaking, the rest of the system is not concerned about this specific sub-system's connection state, since it would be simply cut out of the communication network. So, connection state is here only tracked to help the LED Task show the user the correct information, but the rest of the system - if well decoupled - is required to keep running even if the communication went down (or theoretically speaking, also if there were multiple devices tracking the temperature and connected to the same \textit{MQTT} topic and broker).
-	\section{Window Controller} % TO BE REVISED
+	\section{Window Controller}
 	This component's main behavior is to actuate the window opening. In doing so, it's connected to the \textit{Control Unit} via \textit{Serial Line} and it exposes a little operator panel to directly manipulate the window, switching between manual or automatic mode and controlling the window opening level, if in manual mode. Its behavior can be divided in Tasks, running concurrently to achieve the global behavior (it will be discussed in further detail how it's not actually concurrent, since it runs on a single-core \textit{Arduino UNO} board).
 		\subsection{Window Controlling Task}
 		This Task is responsible of actuating the system's behavior on the actual window. Its only duty is to set the window state each period, querying the \textit{Communication Task} to retrieve the current opening value signaled by the \textit{Control Unit}.
@@ -106,16 +106,19 @@
 			\label{img:window-controller/communication-fsm}
 		\end{figure}
 		The Communication Task checks for new messages periodically, and expects to receive each period a message containing the current opening level, the current mode and the current temperature. On the other hand, it periodically sends a message containing the user input, representing whether the button has been pressed within the last period and the current value input for the window opening level. Obviously, it's a responsibility of the \textit{Control Unit}, as the system's Controller, to handle user input data according to the state (e.g. to discard the current input value if the system is in automatic mode).
-	\section{Operator Dashboard} %TO BE REVISED, MIGHT BE FINE
-	The Operator Dashboard serves here as a remote user interface to control the whole system. It offers a graphical interface in order to present to the user relevant data with a certain clarity and processing, in order to simplify their operations. It's based on a web interface, and shows various components, which can represent plain output or be associated to input commands. In particular, it offers the equivalent of the Window Controller in-place panel, with a button to switch between manual and automatic mode, and it adds to that a button to register that an alarm situation has been restored. It communicates via HTTP to the Control Unit, which is then responsible of reflecting user actions on the Model.
-	\section{Control Unit} % TO BE REVISED, MIGHT BE FINE
-	This subsystem serves as the application Controller. It exchanges data with all subsystems, storing internally what's relevant for the user in order to represent it properly, and ensures the user input is effective on the real-world domain. It's the core of the application, and therefore tracks the state of the other subsystems, and bridges among the various communication protocols (in this case Serial, HTTP and MQTT) to allow effective data exchange between subsystems. It will be made of various components itself, and its main goal is to decouple the other subsystems, trying to minimize inner coupling between its own components.
+	\section{Operator Dashboard}
+	The \textit{Operator Dashboard} serves as a remote user interface to control the system. In particular it offers a graphical representation of the system's current state - which includes a graph of temperature history, the current average, maximum and minimum temperature values in the last period of time, the system operating mode and the window opening level. In addition to this, it allows the operator to switch between automatic and manual modes, as well as a button to restore the system after solving an issue which caused an alarm. It's connected to the \textit{Control Unit} via \textit{HTTP}.
+	\section{Control Unit}
+	This sub-system is the core of the application. It exchanges data with all other sub-systems, and ensures data consistency storing internally all relevant values. Its main responsibility is to bridge between protocols to coordinate all system components, and to actuate the system's behavior on the real world.
+	\newline This sub-system itself is made out of various components.
 	\begin{figure}[H]
 		\centering{}
 		\includegraphics[scale=0.5]{img/control-unit-architecture.png}
-		\caption{UML lass diagram showing the architecture scheme for the Control Unit sub-components}
+		\caption{UML class diagram showing the architecture scheme for the Control Unit sub-components}
 		\label{img:control-unit-architecture}
 	\end{figure}
+	In this scheme, the \textit{CentralController} is the one responsible of ensuring proper data consistency, and it cooperates with all the other sub-components to properly communicate with each sub-system.
+	\newline The main concern implementing this sub-system is to ensure that data is properly stored and can be safely accessed, preventing race conditions and other concurrency issues.
 	
 	\chapter{Implementing Choices}
 	\section{Temperature Monitor}
