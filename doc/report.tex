@@ -120,8 +120,19 @@
 	In this scheme, the \textit{CentralController} is the one responsible of ensuring proper data consistency, and it cooperates with all the other sub-components to properly communicate with each sub-system.
 	\newline The main concern implementing this sub-system is to ensure that data is properly stored and can be safely accessed, preventing race conditions and other concurrency issues.
 	
-	\chapter{Implementing Choices}
+	\chapter{Implementing Solutions}
 	\section{Temperature Monitor}
+	\begin{figure}[H]
+		\centering{}
+		\includegraphics{img/window-controller/circuit.png} %TO BE MODIFIED
+		\caption{Detailed circuit for the temperature monitor sub-system}
+		\label{img:temp-monitor/circuit}
+	\end{figure}
+	In this scheme si depicted the detailed circuit for the \textit{Temperature Monitor}, deployed on an \textit{ESP32 System-on-a-Chip} and programmed relying on the \textit{Wiring} framework.
+	\newline The \textit{ESP32} holds enough program memory to host a little Operating System, which means that the programmer can deploy Tasks on both its cores without having to directly schedule them. For this project, \href{https://www.freertos.org/}{\textit{the FreeRTOS Operating System}} was used.
+	\newline Specifically, both network-related tasks are pinned to \textit{Core 0}. This because - using \textit{FreeRTOS} on \textit{ESP32} - the \textit{event Task} is automatically pinned to \textit{Core 0}, and so all WiFi events are dispatched on that core. On the other hand, the \textit{LED Task} and the \textit{Temperature Measuring Task} are left unpinned, delegating to the OS the responsibility to balance load and maximize throughput.
+	\newline For what concerns communication, since the system relies on the \textit{MQTT} protocol, the \href{https://pubsubclient.knolleary.net/}{\textit{PubSubClient library}} was used. This particular library allows the programmer to subscribe to specific topics from a specific broker, without having to deal with protocol-specific low level aspects. The message content is represented in JSON format like it was for the \textit{Window Controller}. In particular, the back-end sends periodically sends this sub-system the requested sample frequency, and in response this component sends back the current temperature measure, together with the date and the time of the measurement, for history-keeping reasons.
+	\newline To synchronize the ESP time with current date and time I relied on the \href{time.nist.gov}{\textit{United States National Institute of Standards and Technology time server}}, as suggested by \href{https://www.programmingelectronics.com/esp32-time-servers/}{\textit{this guide page}}.
 	\section{Window Controller}
 	\begin{figure}[H]
 		\centering{}
@@ -129,7 +140,7 @@
 		\caption{Detailed circuit for the window controller sub-system}
 		\label{img:window-controller/circuit}
 	\end{figure}
-	In this scheme, available at \href{https://www.tinkercad.com/things/2nadVXk0wQ5-esiot-assignment-03-arduino?sharecode=t4LayAw_Rc1SNLqdSHt3uK_EuT6TttEPHQjHAwEp-Zc}{\textit{this link}}, is depicted the detailed circuit for the \textit{Window Controller}.
+	In this scheme, available at \href{https://www.tinkercad.com/things/2nadVXk0wQ5-esiot-assignment-03-arduino?sharecode=t4LayAw_Rc1SNLqdSHt3uK_EuT6TttEPHQjHAwEp-Zc}{\textit{this link}}, is depicted the detailed circuit for the \textit{Window Controller}, deployed on an \textit{Arduino UNO Board} and programmed relying on the \textit{Wiring} framework.
 	\newline One of the main concerns here is to implement our own scheduler, since Arduino doesn't support any kind of Operating System. This can be easily achieved implementing a cooperative round robin scheduler, since all Tasks have finite - and relatively short - execution routines. In addition to that, this kind of scheduler also defines implicit priorities among tasks, which can be used to the developer's advantage deploying tasks in such a way to avoid invalid data reads (e.g. collecting input and forwarding it to the \textit{Control Unit} after having actuated the consistent data collected earlier). Attention must be paid to defining the Tasks' periods, in order to avoid exceeding deadlines on one hand and event loss on the other.
 	\newline Another concern is the data format to send on the \textit{Serial Line}. All messages are formatted in JSON notation, in order to be consistent with the other components' communication standard. From the \textit{Control Unit} to the \textit{Window Controller}, the message contains the last measured temperature value, the current control mode (automatic or manual) and the current opening level to be actuated. On the other hand, the \textit{Window Controller} sends a JSON object containing two values, representing respectively if a mode switch was requested, and the opening level requested by the in-place operator. The handling of those two values is delegated to the \textit{Control Unit}, which is the one coordinating all sub-systems and storing the valid representation of the system's state at any time.
 		\subsection{Libraries and External Dependencies}
