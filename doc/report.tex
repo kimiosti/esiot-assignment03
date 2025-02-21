@@ -30,9 +30,9 @@
 	\newline In particular, the Controller behavior is implemented by the \textbf{Control Unit}, while the main View component interfacing towards the user would be the \textit{Operator Dashboard}. The \textit{Temperature Monitor} is fully a Model component, since it samples the real-world status value and shares it with the \textit{Control Unit}. Finally, the \textit{Window Controller} can be considered to be almost completely Model, with a part of View in the Control Panel, which allows the user to switch mode between manual and automatic, and to control the window angle when in manual mode.
 	\section{Temperature Monitor}
 	This subsystem's main feature is sampling the room's temperature with a given frequency. It's also responsible for sending that data to the \textit{Control Unit}, so it must include a component handling the subsystem connectivity to the back-end.
-	\newline Its detailed behavior can be described analyzing each sub-component with its responsibilities. Each sub-component can be modeled as a Task, and all Tasks run in parallel in the subsystem on which this part of the application is deployed.
+	\newline Its detailed behavior can be described analyzing each sub-component with its responsibilities. Each sub-component can be modeled as a Task, and all Tasks run in parallel in the subsystem on which this part of the application is deployed. All Tasks can be modeled as Synchronous Finite State Machines.
 		\subsection{Temperature Measuring Task}
-		The central Task is the one responsible of actually measuring the temperature. It can be modeled as a Synchronous Finite State Machine.
+		The central Task is the one responsible of actually measuring the temperature.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/temp-monitor/temp-measuring-fsm.png}
@@ -42,7 +42,7 @@
 		It is clearly modeled - for clarity - how the state transitions in automatic mode are determined by the temperature values. But in reality, all state transitions are demanded by the \textit{Control Unit} according to the values that it receives from all components, since it is the central Controller for the application.
 		\newline Also, it is clearly modeled to be network-agnostic. Indeed, this sub-component is meant to measure at all times, and it will be a responsibility of the network-related tasks to retrieved the stored data when it's supposed to be shared.
 		\subsection{Connection Monitoring Task}
-		This task is the one responsible for monitoring the system connection state. It's supposed to check whether the component is still online, and when it's not, to try and reconnect. It works on two layers: the first one checks whether the system is connected to the Internet, and the higher one checks whether the \textit{MQTT} subscription is still on.
+		This task is the one responsible for monitoring the system connection state. It's supposed to check whether the component is still online, and when it's not, to try and reconnect. It works on two layers: the first one checks whether the system is connected to the \textit{WiFi}, and the higher one checks whether the \textit{MQTT} subscription is still on.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/temp-monitor/connection-monitoring-fsm.png}
@@ -69,7 +69,7 @@
 		In this scheme, it's obvious how this Task's state depends directly on the state of the \textit{Connection Monitoring Task}. In particular, the LED is shown as green only when the device is fully connected to the Internet and the \textit{MQTT} subscription is running properly.
 		\paragraph{Note} the sub-system's connection state is kept internally, and is not communicated to the \textit{Control Unit}. This because, architecturally speaking, the rest of the system is not concerned about this specific sub-system's connection state, since it would be simply cut out of the communication network. So, connection state is here only tracked to help the LED Task show the user the correct information, but the rest of the system - if well decoupled - is required to keep running even if the communication went down (or theoretically speaking, also if there were multiple devices tracking the temperature and connected to the same \textit{MQTT} topic and broker).
 	\section{Window Controller}
-	This component's main behavior is to actuate the window opening. In doing so, it's connected to the \textit{Control Unit} via \textit{Serial Line} and it exposes a little operator panel to directly manipulate the window, switching between manual or automatic mode and controlling the window opening level, if in manual mode. Its behavior can be divided in Tasks, running concurrently to achieve the global behavior (it will be discussed in further detail how it's not actually concurrent, since it runs on a single-core \textit{Arduino UNO} board).
+	This component's main behavior is to actuate the window opening. In doing so, it's connected to the \textit{Control Unit} via \textit{Serial Line} and it exposes a little operator panel to directly manipulate the window, switching between manual or automatic mode and controlling the window opening level, if in manual mode. Its behavior can be modeled with multiple Tasks, each one represented by a Synchronous Finite State Machine.
 		\subsection{Window Controlling Task}
 		This Task is responsible of actuating the system's behavior on the actual window. Its only duty is to set the window state each period, querying the \textit{Communication Task} to retrieve the current opening value signaled by the \textit{Control Unit}.
 		\begin{figure}[H]
