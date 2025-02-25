@@ -113,9 +113,9 @@
 	\newline This sub-system itself is made out of various components.
 	\begin{figure}[H]
 		\centering{}
-		\includegraphics[scale=0.5]{img/control-unit-architecture.png}
+		\includegraphics[scale=0.5]{img/control-unit/architecture.png}
 		\caption{UML class diagram showing the architecture scheme for the Control Unit sub-components}
-		\label{img:control-unit-architecture}
+		\label{img:control-unit/architecture}
 	\end{figure}
 	In this scheme, the \textit{CentralController} is the one responsible of ensuring proper data consistency, and it cooperates with all the other sub-components to properly communicate with each sub-system.
 	\newline The main concern implementing this sub-system is to ensure that data is properly stored and can be safely accessed, preventing race conditions and other concurrency issues.
@@ -153,5 +153,22 @@
 	\newline Like other sub-systems, it considers only the system state sent by the \textit{Control Unit} to be consistent, but it also keeps a cache of the history of the system in order to properly show the history graph to the user: it will be empty on startup, and it will be gradually drawn while refreshing the page increasingly adding the new data it receives.
 	\newline To draw the measurements history, the \href{https://www.w3schools.com/ai/ai_chartjs.asp}{\textit{Chart.js library}} was used.
 	\section{Control Unit}
+	The \textit{Control Unit} is the core sub-system, that keeps track of the whole system's state in a consistent way. It's on its own divided in a few parts.
+		\subsection{Database}
+		The first component is a rather trivial, yet essential, database implemented in \textit{mySQL}. It's made out of only one table, but it allows the system to save data persistently and to keep an history of the measurements even if the \textit{Control Unit} stops its execution.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics{img/control-unit/db-scheme.png}
+			\caption{Scheme of the database table}
+			\label{img:control-unit/db-scheme}
+		\end{figure}
+		\subsection{Serial Agent}
+		This component actively communicates with the \textit{Window Controller}. It's implemented in Java, relying on the \href{https://github.com/java-native/jssc}{\textit{JSSC library}} for Serial Line Communication. It's responsible of gathering the in-place control unit input, communicating it to the \textit{Central Controller} in order to reply effectively to the \textit{Window Controller} to actuate the - eventually - mutated state of the system.
+		\subsection{MQTT Agent}
+		This component actively communicates with the \textit{Temperature Monitor}. It's also implemented in Java, relying on the \href{https://vertx.io/}{\textit{VertX library}} to implement an event-based asynchronous component. Its main activity is to wait for the \textit{Temperature Monitor}'s messages, replying with the - eventually - mutated state of the system after communicating the measurements to the \textit{Central Controller} and retrieving the new state of the system.
+		\subsection{HTTP Server}
+		This component acts as a very simple Server to answer the \textit{HTTP} requests coming from the \textit{Operator Dashboard}. It's also implemented in Java relying on the \href{https://vertx.io/}{\textit{VertX library}}. Similarly to the \textit{MQTT Agent}, it waits for the \textit{Operator Dashboard}'s requests, retrieving then valid data from the database thanks to the \textit{Central Controller}, and then communicating it as a response.
+		\subsection{Central Controller}
+		This component is the actual core of the whole system. It's responsible of all access to the database, and therefore must implement strong thread-safe procedures in order to ensure that data is handled properly. It's implemented in Java, relying on the \href{https://docs.oracle.com/javase/8/docs/technotes/guides/jdbc/}{\textit{native JDBC API}} to connect to the database and query it for data management.
 	
 \end{document}
