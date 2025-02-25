@@ -124,7 +124,7 @@
 	\section{Temperature Monitor}
 	\begin{figure}[H]
 		\centering{}
-		\includegraphics{img/window-controller/circuit.png} %TO BE MODIFIED
+		\includegraphics[scale=0.75]{img/temp-monitor/circuit.png}
 		\caption{Detailed circuit for the temperature monitor sub-system}
 		\label{img:temp-monitor/circuit}
 	\end{figure}
@@ -132,7 +132,7 @@
 	\newline The \textit{ESP32} holds enough program memory to host a little Operating System, which means that the programmer can deploy Tasks on both its cores without having to directly schedule them. For this project, \href{https://www.freertos.org/}{\textit{the FreeRTOS Operating System}} was used.
 	\newline Specifically, both network-related tasks are pinned to \textit{Core 0}. This because - using \textit{FreeRTOS} on \textit{ESP32} - the \textit{event Task} is automatically pinned to \textit{Core 0}, and so all WiFi events are dispatched on that core. On the other hand, the \textit{LED Task} and the \textit{Temperature Measuring Task} are left unpinned, delegating to the OS the responsibility to balance load and maximize throughput.
 	\newline For what concerns communication, since the system relies on the \textit{MQTT} protocol, the \href{https://pubsubclient.knolleary.net/}{\textit{PubSubClient library}} was used. This particular library allows the programmer to subscribe to specific topics from a specific broker, without having to deal with protocol-specific low level aspects. The message content is represented in JSON format like it was for the \textit{Window Controller}. In particular, the back-end sends periodically sends this sub-system the requested sample frequency, and in response this component sends back the current temperature measure, together with the date and the time of the measurement, for history-keeping reasons.
-	\newline To synchronize the ESP time with current date and time I relied on the \href{time.nist.gov}{\textit{United States National Institute of Standards and Technology time server}}, as suggested by \href{https://www.programmingelectronics.com/esp32-time-servers/}{\textit{this guide page}}.
+	\newline To synchronize the ESP time with current date and time I relied on the \href{https://www.nist.gov/}{\textit{United States National Institute of Standards and Technology time server}}, as suggested by \href{https://www.programmingelectronics.com/esp32-time-servers/}{\textit{this guide page}}.
 	\section{Window Controller}
 	\begin{figure}[H]
 		\centering{}
