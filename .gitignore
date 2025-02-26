@@ -19,3 +19,6 @@
 
 #UML text files
 */uml/
+
+#Build files
+*/build/
