@@ -6,7 +6,8 @@ import java.sql.Time;
 /**
  * Record carrying a temperature measurement.
  * @param temperature the measured temperature.
- * @param timestamp the timestamp in which the measure was performed.
+ * @param date the date in which the temperature was measured.
+ * @param time the time in which the temperature was measured.
  */
 public record TemperatureMeasure(float temperature, Date date, Time time) {
 
