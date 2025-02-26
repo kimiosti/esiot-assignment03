@@ -1,29 +1,40 @@
 package unibo.esiot2024.utils;
 
-import java.util.Date;
+import java.sql.Date;
+import java.sql.Time;
 
 /**
  * Record carrying a temperature measurement.
  * @param temperature the measured temperature.
  * @param timestamp the timestamp in which the measure was performed.
  */
-public record TemperatureMeasure(float temperature, Date timestamp) {
+public record TemperatureMeasure(float temperature, Date date, Time time) {
 
     /**
-     * Instantiates a temperature measure carrier.
-     * @param temperature the value measured by the sensor.
-     * @param timestamp the time at which the measure occurred.
+     * Instantiates a carrier for a temperature measurement.
+     * @param temperature the measured temperature.
+     * @param date the date of the measurement.
+     * @param time the time of the measurement.
      */
-    public TemperatureMeasure(final float temperature, final Date timestamp) {
+    public TemperatureMeasure(final float temperature, final Date date, final Time time) {
         this.temperature = temperature;
-        this.timestamp = Date.from(timestamp.toInstant());
+        this.date = Date.valueOf(date.toLocalDate());
+        this.time = Time.valueOf(time.toLocalTime());
     }
 
     /**
-     * Getter for the measure's timestamp.
-     * @return a {@link Date} object representing the moment in which the measure was captured.
+     * Getter for the measurement date.
+     * @return a {@link Date} object representing the measurement date.
      */
-    public Date timestamp() {
-        return Date.from(this.timestamp.toInstant());
+    public Date date() {
+        return Date.valueOf(date.toLocalDate());
+    }
+
+    /**
+     * Getter for the measurement time.
+     * @return a {@link Time} object representing the measurement time.
+     */
+    public Time time() {
+        return Time.valueOf(time.toLocalTime());
     }
 }

@@ -19,7 +19,7 @@ public record SystemInfo(
      * @param openingPercentage the current opening percentage of the window.
      */
     public SystemInfo(final TemperatureMeasure measure, final SystemState state, final int openingPercentage) {
-        this.measure = new TemperatureMeasure(measure.temperature(), measure.timestamp());
+        this.measure = new TemperatureMeasure(measure.temperature(), measure.date(), measure.time());
         this.state = state;
         this.openingPercentage = openingPercentage;
     }
