@@ -41,7 +41,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
 
-    //Additional dependencies for VertX and JSSC
+    //Additional dependencies for VertX, JSSC and JDBC
+    implementation("mysql:mysql-connector-java:8.0.29")
     implementation("io.github.java-native:jssc:2.9.6")
     implementation ("io.vertx:vertx-core:4.2.6")
     implementation ("io.vertx:vertx-web:4.2.6")
