@@ -58,15 +58,14 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     }
 
     @Override
-    public synchronized void recordNewMeasure(final TemperatureMeasure measure, final SystemState state,
-            final int openingPercentage) {
+    public synchronized void recordNewMeasure(final SystemInfo entry) {
                 try (var statement = this.createParametrizedStatement(
                     SETTER_QUERY,
-                    measure.temperature(),
-                    measure.date(),
-                    measure.time(),
-                    state.getState(),
-                    openingPercentage
+                    entry.measure().temperature(),
+                    entry.measure().date(),
+                    entry.measure().time(),
+                    entry.state().getState(),
+                    entry.openingPercentage()
                 )) {
                     statement.execute();
                 } catch (final SQLException e) {
