@@ -17,11 +17,7 @@ public interface DatabaseAccessHandler {
      * @param state the current state of the system.
      * @param openingPercentage the current opening percentage of the window.
      */
-    void recordNewMeasure(
-        Optional<TemperatureMeasure> measure,
-        Optional<SystemState> state,
-        Optional<Integer> openingPercentage
-    );
+    void recordNewMeasure(TemperatureMeasure measure, SystemState state, int openingPercentage);
 
     /**
      * Reads the last valid measure from the database.
