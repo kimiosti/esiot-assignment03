@@ -13,6 +13,7 @@
 -- ________________ 
 
 create database SmartTemperatureMonitor;
+use SmartTemperatureMonitor;
 
 
 -- DBSpace Section
