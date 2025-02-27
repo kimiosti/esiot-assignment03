@@ -64,8 +64,10 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
         if (curValues.isPresent()) {
             final var statement = this.createParametrizedStatement(
                 SETTER_QUERY,
-                measure,
-                state,
+                measure.temperature(),
+                measure.date(),
+                measure.time(),
+                state.getState(),
                 openingPercentage
             );
             if (statement != null) {
@@ -106,20 +108,17 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
         return this.stateNameToState.containsKey(stateName) ? this.stateNameToState.get(stateName) : SystemState.MANUAL;
     }
 
-    private PreparedStatement createParametrizedStatement(final String query, final TemperatureMeasure measure,
-            final SystemState state, final int openingPercentage) {
-        try {
-            final var statement = this.connection.prepareStatement(query);
-            statement.setObject(1, measure.temperature());
-            statement.setObject(2, measure.date());
-            statement.setObject(3, measure.time());
-            statement.setObject(4, state.getState());
-            statement.setObject(5, openingPercentage);
-            return statement;
-        } catch (final SQLException e) {
-            this.log(e);
-            return null;
-        }
+    private PreparedStatement createParametrizedStatement(final String query, final Object... params) {
+            try {
+                final var statement = this.connection.prepareStatement(query);
+                for (int i = 0; i < params.length; i++) {
+                    statement.setObject(i + 1, params[i]);
+                }
+                return statement;
+            } catch (final SQLException e) {
+                this.log(e);
+                return null;
+            }
     }
 
     private void log(final Exception e) {
