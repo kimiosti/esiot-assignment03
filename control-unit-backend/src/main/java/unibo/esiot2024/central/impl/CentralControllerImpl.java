@@ -102,7 +102,9 @@ public final class CentralControllerImpl implements CentralController {
 
     private synchronized Optional<SystemInfo> accessDatabase(final AccessMode mode, final Optional<SystemInfo> entry) {
         switch (mode) {
-            case READ -> this.handler.getCurrentValues();
+            case READ -> {
+                return this.handler.getCurrentValues();
+            }
             case WRITE -> entry.ifPresent(this.handler::recordNewMeasure);
         }
 
