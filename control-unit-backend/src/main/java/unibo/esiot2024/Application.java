@@ -2,7 +2,7 @@ package unibo.esiot2024;
 
 import java.sql.SQLException;
 
-import unibo.esiot2024.central.db_access.impl.DatabaseAccessHandlerImpl;
+import unibo.esiot2024.central.impl.CentralControllerImpl;
 
 /**
  * Launcher class for the backend application.
@@ -29,7 +29,7 @@ public final class Application {
     public static void launch(final String dbUser, final String dbPass) {
         //boolean excepted = false;
         try {
-            new DatabaseAccessHandlerImpl(dbUser, dbPass);
+            new CentralControllerImpl(dbUser, dbPass);
         } catch (final SQLException e) {
             //excepted = true;
             new GUI();
