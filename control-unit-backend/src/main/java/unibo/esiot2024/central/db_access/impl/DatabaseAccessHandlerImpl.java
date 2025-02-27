@@ -69,10 +69,9 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
                     openingPercentage
                 )) {
                     statement.execute();
-                } catch (SQLException e) {
+                } catch (final SQLException e) {
                     this.log(e);
                 }
-                
     }
 
     @Override
