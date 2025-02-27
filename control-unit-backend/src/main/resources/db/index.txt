@@ -1,0 +1,2 @@
+create unique index ID_MEASUREMENTS_IND 
+on MEASUREMENTS (measureID)
