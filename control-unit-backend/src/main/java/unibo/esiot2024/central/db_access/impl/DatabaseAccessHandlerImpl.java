@@ -1,4 +1,4 @@
-package unibo.esiot2024.central.impl;
+package unibo.esiot2024.central.db_access.impl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import unibo.esiot2024.central.api.DatabaseAccessHandler;
+import unibo.esiot2024.central.db_access.api.DatabaseAccessHandler;
 import unibo.esiot2024.utils.SystemInfo;
 import unibo.esiot2024.utils.SystemState;
 import unibo.esiot2024.utils.TemperatureMeasure;

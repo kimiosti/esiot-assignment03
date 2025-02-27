@@ -1,4 +1,4 @@
-package unibo.esiot2024.central.impl;
+package unibo.esiot2024.central.db_access.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import unibo.esiot2024.central.api.DatabaseConnectionFactory;
+import unibo.esiot2024.central.db_access.api.DatabaseConnectionFactory;
 
 /**
  * Implementation for {@link DatabaseConnectionFactory}.
