@@ -46,6 +46,8 @@ public final class GUI {
         frame.add(passPanel);
         frame.add(submitPanel);
 
+        frame.getRootPane().setDefaultButton(submit);
+
         frame.setSize(
             (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3,
             (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 3
