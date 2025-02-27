@@ -1,6 +1,7 @@
 package unibo.esiot2024.central.db_access.api;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * Interface for a database connection factory.
@@ -15,5 +16,5 @@ public interface DatabaseConnectionFactory {
      * @param dbName the name of the database.
      * @return a {@link Connection} to operate on the given database.
      */
-    Connection createConnection(String url, String username, String password, String dbName);
+    Connection createConnection(String url, String username, String password, String dbName) throws SQLException;
 }

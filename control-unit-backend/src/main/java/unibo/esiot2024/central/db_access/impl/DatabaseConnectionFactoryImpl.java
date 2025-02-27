@@ -29,30 +29,14 @@ public final class DatabaseConnectionFactoryImpl implements DatabaseConnectionFa
     );
 
     @Override
-    public Connection createConnection(final String url, final String username, final String password, final String dbName) {
-        try {
+    public Connection createConnection(final String url, final String username, final String password, final String dbName)
+        throws SQLException {
             final var connection = DriverManager.getConnection(URL_PREFIX + url, username, password);
             if (!this.dbExists(connection, dbName)) {
                 this.createDatabase(connection);
             }
-        } catch (final SQLException e) {
-            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(
-                Level.SEVERE,
-                e.getMessage(),
-                e
-            );
-        }
 
-        try {
             return DriverManager.getConnection(URL_PREFIX + url + "/" + dbName, username, password);
-        } catch (final SQLException e) {
-            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(
-                Level.SEVERE,
-                e.getMessage(),
-                e
-            );
-            return null;
-        }
     }
 
     private boolean dbExists(final Connection connection, final String dbName) {
