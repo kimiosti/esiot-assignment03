@@ -51,5 +51,6 @@ public final class GUI {
             (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 3
         );
         frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 }
