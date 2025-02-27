@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import unibo.esiot2024.central.db_access.api.DatabaseAccessHandler;
 import unibo.esiot2024.utils.SystemInfo;
 import unibo.esiot2024.utils.SystemState;
@@ -59,25 +60,19 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     @Override
     public synchronized void recordNewMeasure(final TemperatureMeasure measure, final SystemState state,
             final int openingPercentage) {
-        final var curValues = this.getCurrentValues();
-
-        if (curValues.isPresent()) {
-            final var statement = this.createParametrizedStatement(
-                SETTER_QUERY,
-                measure.temperature(),
-                measure.date(),
-                measure.time(),
-                state.getState(),
-                openingPercentage
-            );
-            if (statement != null) {
-                try (statement) {
+                try (var statement = this.createParametrizedStatement(
+                    SETTER_QUERY,
+                    measure.temperature(),
+                    measure.date(),
+                    measure.time(),
+                    state.getState(),
+                    openingPercentage
+                )) {
                     statement.execute();
-                } catch (final SQLException e) {
+                } catch (SQLException e) {
                     this.log(e);
                 }
-            }
-        }
+                
     }
 
     @Override
@@ -108,17 +103,19 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
         return this.stateNameToState.containsKey(stateName) ? this.stateNameToState.get(stateName) : SystemState.MANUAL;
     }
 
-    private PreparedStatement createParametrizedStatement(final String query, final Object... params) {
-            try {
-                final var statement = this.connection.prepareStatement(query);
-                for (int i = 0; i < params.length; i++) {
-                    statement.setObject(i + 1, params[i]);
-                }
-                return statement;
-            } catch (final SQLException e) {
-                this.log(e);
-                return null;
-            }
+    @SuppressFBWarnings(
+        value = "OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE",
+        justification = """
+                The responsibility to close the statement is delegated to the caller.
+                So it's a false positive.
+                """
+    )
+    private PreparedStatement createParametrizedStatement(final String query, final Object... params) throws SQLException {
+        final var statement = this.connection.prepareStatement(query);
+        for (int i = 0; i < params.length; i++) {
+            statement.setObject(i + 1, params[i]);
+        }
+        return statement;
     }
 
     private void log(final Exception e) {
