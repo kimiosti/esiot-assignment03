@@ -37,4 +37,25 @@ public interface CentralController {
      * @return a {@link SystemInfo} instance containing the last valid measure.
      */
     Optional<SystemInfo> getCurrentValues();
+
+    /**
+     * Getter for the average temperature measurement of the last minute.
+     * @return a {@link Float} instance containing the average value,
+     * or an empty {@link Optional} if no values have been recorded in the last minute.
+     */
+    Optional<Float> getAverageTemperature();
+
+    /**
+     * Getter for the highest temperature measured in the last minute.
+     * @return a {@link Float} instance containing the highest measured value,
+     * or an empty {@link Optional} if no values have been recorded in the last minute.
+     */
+    Optional<Float> getMaxTemperature();
+
+    /**
+     * Getter for the lowest temperature measured in the last minute.
+     * @return a {@link Float} instance containing the highest measured value,
+     * or an empty {@link Optional} if no values have been recorded in the last minute.
+     */
+    Optional<Float> getMinTemperature();
 }
