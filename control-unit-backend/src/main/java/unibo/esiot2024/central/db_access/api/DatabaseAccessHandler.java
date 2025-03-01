@@ -17,7 +17,30 @@ public interface DatabaseAccessHandler {
 
     /**
      * Reads the last valid measure from the database.
-     * @return a {@link SystemInfo} instance representing the current state of all values tracked by the system.
+     * @return a {@link SystemInfo} instance representing the current state of all values tracked by the system,
+     * or an empty {@link Optional} if no value is yet in the database.
      */
     Optional<SystemInfo> getCurrentValues();
+
+    /**
+     * Returns the average temperature measure in the last minute.
+     * @return a {@link SystemInfo} instance representing the current timestamp, state and opening percentage, and the
+     * average temperature of the last minute, or an empty {@link Optional} if no value has been recorded in the last
+     * minute.
+     */
+    Optional<SystemInfo> getAverage();
+
+    /**
+     * Returns the highest temperature measure in the last minute.
+     * @return a {@link SystemInfo} instance representing the state of the system at the time of the highest temperature
+     * measure in the last minute, or an empty {@link Optional} if no value has been recorded in the last minute.
+     */
+    Optional<SystemInfo> getMax();
+
+    /**
+     * Returns the lowest temperature measure in the last minute.
+     * @return a {@link SystemInfo} instance representing the state of the system at the time of the lowest temperature
+     * measure in the last minute, or an empty {@link Optional} if no value has been recorded in the last minute.
+     */
+    Optional<SystemInfo> getMin();
 }
