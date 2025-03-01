@@ -31,15 +31,15 @@ public interface DatabaseAccessHandler {
 
     /**
      * Returns the highest temperature measure in the last minute.
-     * @return a {@link SystemInfo} instance representing the state of the system at the time of the highest temperature
-     * measure in the last minute, or an empty {@link Optional} if no value has been recorded in the last minute.
+     * @return a {@link Float} instance with the value of the lowest temperature of the last minute,
+     * or an empty {@link Optional} if no value has been recorded in the last minute.
      */
-    Optional<SystemInfo> getMax();
+    Optional<Float> getMax();
 
     /**
      * Returns the lowest temperature measure in the last minute.
-     * @return a {@link SystemInfo} instance representing the state of the system at the time of the lowest temperature
-     * measure in the last minute, or an empty {@link Optional} if no value has been recorded in the last minute.
+     * @return a {@link Float} instance with the value of the highest temperature of the last minute,
+     * or an empty {@link Optional} if no value has been recorded in the last minute.
      */
-    Optional<SystemInfo> getMin();
+    Optional<Float> getMin();
 }

@@ -86,22 +86,22 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     }
 
     @Override
-    public synchronized Optional<SystemInfo> getMax() {
+    public synchronized Optional<Float> getMax() {
         try (var statement = Queries.MAX_QUERY.toStatement(this.connection)) {
             final var resSet = statement.executeQuery();
 
-            return resSet.next() ? Optional.of(this.getInfoFromResultSet(resSet)) : Optional.empty();
+            return resSet.next() ? Optional.of(resSet.getFloat("maxTemp")) : Optional.empty();
         } catch (final SQLException e) {
             return Optional.empty();
         }
     }
 
     @Override
-    public synchronized Optional<SystemInfo> getMin() {
+    public synchronized Optional<Float> getMin() {
         try (var statement = Queries.MIN_QUERY.toStatement(this.connection)) {
             final var resSet = statement.executeQuery();
 
-            return resSet.next() ? Optional.of(this.getInfoFromResultSet(resSet)) : Optional.empty();
+            return resSet.next() ? Optional.of(resSet.getFloat("minTemp")) : Optional.empty();
         } catch (final SQLException e) {
             return Optional.empty();
         }
