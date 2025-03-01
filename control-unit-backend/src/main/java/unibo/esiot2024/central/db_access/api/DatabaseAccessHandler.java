@@ -24,11 +24,10 @@ public interface DatabaseAccessHandler {
 
     /**
      * Returns the average temperature measure in the last minute.
-     * @return a {@link SystemInfo} instance representing the current timestamp, state and opening percentage, and the
-     * average temperature of the last minute, or an empty {@link Optional} if no value has been recorded in the last
-     * minute.
+     * @return a {@link Float} instance with the value of the average temperature, or an empty {@link Optional} if no
+     * measure was recorded in the last minute.
      */
-    Optional<SystemInfo> getAverage();
+    Optional<Float> getAverage();
 
     /**
      * Returns the highest temperature measure in the last minute.
