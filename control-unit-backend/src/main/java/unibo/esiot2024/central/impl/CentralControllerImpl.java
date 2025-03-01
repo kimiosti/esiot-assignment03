@@ -92,6 +92,22 @@ public final class CentralControllerImpl implements CentralController {
         return this.accessDatabase(AccessMode.READ, Optional.empty());
     }
 
+    @Override
+    public Optional<Float> getAverageTemperature() {
+        return this.getTempFromDBAccess(AccessMode.AVG);
+    }
+
+    @Override
+    public Optional<Float> getMaxTemperature() {
+        return this.getTempFromDBAccess(AccessMode.MAX);
+    }
+
+    @Override
+    public Optional<Float> getMinTemperature() {
+        return this.getTempFromDBAccess(AccessMode.MIN);
+
+    }
+
     private void recordValues(final float temperature, final SystemState state, final int openingPercentage) {
         this.accessDatabase(AccessMode.WRITE, Optional.of(new SystemInfo(
             new TemperatureMeasure(temperature, Date.valueOf(LocalDate.now()), Time.valueOf(LocalTime.now())),
@@ -100,15 +116,42 @@ public final class CentralControllerImpl implements CentralController {
         )));
     }
 
+    private Optional<Float> getTempFromDBAccess(final AccessMode mode) {
+        final var res = this.accessDatabase(mode, Optional.empty());
+        return res.isPresent() ? Optional.of(res.get().measure().temperature()) : Optional.empty();
+    }
+
     private synchronized Optional<SystemInfo> accessDatabase(final AccessMode mode, final Optional<SystemInfo> entry) {
         switch (mode) {
             case READ -> {
                 return this.handler.getCurrentValues();
             }
-            case WRITE -> entry.ifPresent(this.handler::recordNewMeasure);
+            case WRITE -> {
+                entry.ifPresent(this.handler::recordNewMeasure);
+            }
+            case AVG -> {
+                final var avg = this.handler.getAverage();
+                return avg.isEmpty() ? Optional.empty() : Optional.of(this.generateDummyInfo(avg.get()));
+            }
+            case MAX -> {
+                final var max = this.handler.getMax();
+                return max.isEmpty() ? Optional.empty() : Optional.of(this.generateDummyInfo(max.get()));
+            }
+            case MIN -> {
+                final var min = this.handler.getMin();
+                return min.isEmpty() ? Optional.empty() : Optional.of(this.generateDummyInfo(min.get()));
+            }
         }
 
         return entry;
+    }
+
+    private SystemInfo generateDummyInfo(final float temperature) {
+        return new SystemInfo(
+            new TemperatureMeasure(temperature, Date.valueOf(LocalDate.now()), Time.valueOf(LocalTime.now())),
+            SystemState.NORMAL,
+            0
+        );
     }
 
     private SystemState getStateByTemperature(final float temperature, final Optional<SystemInfo> curValues) {
@@ -143,6 +186,6 @@ public final class CentralControllerImpl implements CentralController {
         }
     }
 
-    private enum AccessMode { READ, WRITE }
+    private enum AccessMode { READ, WRITE, AVG, MAX, MIN }
 
 }
