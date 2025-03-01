@@ -60,15 +60,9 @@ public enum Queries {
      */
     MAX_QUERY(
         """
-                SELECT *
+                SELECT MAX(temperature) AS maxTemp
                 FROM measurements
-                WHERE temperature = (
-                    SELECT MAX(m.temperature)
-                    FROM measurements AS m
-                    WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), m.measureTime)) < 60
-                )
-                ORDER BY measureID DESC
-                LIMIT 1
+                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), m.measureTime)) < 60
                 """
     ),
 
@@ -77,15 +71,9 @@ public enum Queries {
      */
     MIN_QUERY(
         """
-                SELECT *
+                SELECT MIN(temperature) AS minTemp
                 FROM measurements
-                WHERE temperature = (
-                    SELECT MIN(m.temperature)
-                    FROM measurements AS m
-                    WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), m.measureTime)) < 60
-                )
-                ORDER BY measureID DESC
-                LIMIT 1
+                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), m.measureTime)) < 60
                 """
     );
 
