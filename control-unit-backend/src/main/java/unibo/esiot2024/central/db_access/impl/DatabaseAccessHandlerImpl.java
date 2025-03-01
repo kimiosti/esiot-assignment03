@@ -1,14 +1,13 @@
 package unibo.esiot2024.central.db_access.impl;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import unibo.esiot2024.central.db_access.api.DatabaseAccessHandler;
 import unibo.esiot2024.utils.SystemInfo;
 import unibo.esiot2024.utils.SystemState;
@@ -21,16 +20,6 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
 
     private static final String CONNECTION_URL = "localhost:3306";
     private static final String DATABASE_NAME = "SmartTemperatureMonitor";
-    private static final String GETTER_QUERY = """
-            SELECT *
-            FROM measurements
-            ORDER BY measureID DESC
-            LIMIT 1
-            """;
-    private static final String SETTER_QUERY = """
-            INSERT INTO measurements(temperature, measureDate, measureTime, state, openingLevel)
-            VALUES (?, ?, ?, ?, ?)
-            """;
 
     private final Connection connection;
     private final Map<String, SystemState> stateNameToState;
@@ -59,8 +48,8 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
 
     @Override
     public synchronized void recordNewMeasure(final SystemInfo entry) {
-                try (var statement = this.createParametrizedStatement(
-                    SETTER_QUERY,
+                try (var statement = Queries.SETTER_QUERY.toStatement(
+                    this.connection,
                     entry.measure().temperature(),
                     entry.measure().date(),
                     entry.measure().time(),
@@ -75,45 +64,63 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
 
     @Override
     public synchronized Optional<SystemInfo> getCurrentValues() {
-        try (var statement = this.connection.prepareStatement(GETTER_QUERY)) {
+        try (var statement = Queries.GETTER_QUERY.toStatement(this.connection)) {
             final var resSet = statement.executeQuery();
 
-            if (resSet.next()) {
-                return Optional.of(new SystemInfo(
-                    new TemperatureMeasure(
-                        resSet.getFloat("temperature"),
-                        resSet.getDate("measureDate"),
-                        resSet.getTime("measureTime")
-                    ),
-                    this.getStateFromString(resSet.getString("state")),
-                    resSet.getInt("openingLevel")
-                ));
-            } else {
-                return Optional.empty();
-            }
+            return resSet.next() ? Optional.of(this.getInfoFromResultSet(resSet)) : Optional.empty();
         } catch (final SQLException e) {
             this.log(e);
             return Optional.empty();
         }
     }
 
-    private SystemState getStateFromString(final String stateName) {
-        return this.stateNameToState.containsKey(stateName) ? this.stateNameToState.get(stateName) : SystemState.MANUAL;
+    @Override
+    public synchronized Optional<Float> getAverage() {
+        try (var statement = Queries.AVG_QUERY.toStatement(this.connection)) {
+            final var resSet = statement.executeQuery();
+
+            return resSet.next() ? Optional.of(resSet.getFloat("avgTemp")) : Optional.empty();
+        } catch (final SQLException e) {
+            return Optional.empty();
+        }
     }
 
-    @SuppressFBWarnings(
-        value = "OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE",
-        justification = """
-                The responsibility to close the statement is delegated to the caller.
-                So it's a false positive.
-                """
-    )
-    private PreparedStatement createParametrizedStatement(final String query, final Object... params) throws SQLException {
-        final var statement = this.connection.prepareStatement(query);
-        for (int i = 0; i < params.length; i++) {
-            statement.setObject(i + 1, params[i]);
+    @Override
+    public synchronized Optional<SystemInfo> getMax() {
+        try (var statement = Queries.MAX_QUERY.toStatement(this.connection)) {
+            final var resSet = statement.executeQuery();
+
+            return resSet.next() ? Optional.of(this.getInfoFromResultSet(resSet)) : Optional.empty();
+        } catch (final SQLException e) {
+            return Optional.empty();
         }
-        return statement;
+    }
+
+    @Override
+    public synchronized Optional<SystemInfo> getMin() {
+        try (var statement = Queries.MIN_QUERY.toStatement(this.connection)) {
+            final var resSet = statement.executeQuery();
+
+            return resSet.next() ? Optional.of(this.getInfoFromResultSet(resSet)) : Optional.empty();
+        } catch (final SQLException e) {
+            return Optional.empty();
+        }
+    }
+
+    private SystemInfo getInfoFromResultSet(final ResultSet resSet) throws SQLException {
+        return new SystemInfo(
+            new TemperatureMeasure(
+                resSet.getFloat("temperature"),
+                resSet.getDate("measureDate"),
+                resSet.getTime("measureTime")
+            ),
+            this.getStateFromString(resSet.getString("state")),
+            resSet.getInt("openingLevel")
+        );
+    }
+
+    private SystemState getStateFromString(final String stateName) {
+        return this.stateNameToState.containsKey(stateName) ? this.stateNameToState.get(stateName) : SystemState.MANUAL;
     }
 
     private void log(final Exception e) {
