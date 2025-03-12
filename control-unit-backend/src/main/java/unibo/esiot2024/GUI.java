@@ -20,9 +20,16 @@ public final class GUI {
     /**
      * Instantiates a simple graphical interface to collect database login data.
      */
-    public GUI() {
+    public GUI(final String... msgs) {
         final var frame = new JFrame("Database login");
-        frame.setLayout(new GridLayout(3, 1));
+        frame.setLayout(new GridLayout(4, 1));
+
+        final var messagePanel = new JPanel(new GridLayout(msgs.length, 1));
+        for (final var msg : msgs) {
+            final var inner = new JPanel();
+            inner.add(new JLabel(msg));
+            messagePanel.add(inner);
+        }
 
         final var userPanel = new JPanel();
         final var username = new JTextField(TEXT_FIELD_COLUMNS);
@@ -42,6 +49,7 @@ public final class GUI {
         });
         submitPanel.add(submit);
 
+        frame.add(messagePanel);
         frame.add(userPanel);
         frame.add(passPanel);
         frame.add(submitPanel);

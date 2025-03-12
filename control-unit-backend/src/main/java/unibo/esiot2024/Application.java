@@ -16,7 +16,7 @@ public final class Application {
      * @param args eventual command line arguments passed to the application.
      */
     public static void main(final String[] args) {
-        new GUI();
+        new GUI("Inserire le credenziali per la connessione a MySQL");
     }
 
 
@@ -32,7 +32,7 @@ public final class Application {
             new CentralControllerImpl(dbUser, dbPass);
         } catch (final SQLException e) {
             //excepted = true;
-            new GUI();
+            new GUI("Errore di connessione", "controllare le credenziali o lo stato del server MySQL");
         }
 
         /**
