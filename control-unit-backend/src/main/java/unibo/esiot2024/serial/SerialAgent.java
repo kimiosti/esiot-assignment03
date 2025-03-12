@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -19,6 +20,13 @@ import unibo.esiot2024.utils.SystemState;
 /**
  * Implementation for the {@link SerialAgent} interface.
  */
+@SuppressFBWarnings(
+    value = "EI_EXPOSE_REP2",
+    justification = """
+            This class must carry a reference to a central controller instance to access the database and make
+            Serial line requests effective.
+            """
+)
 public final class SerialAgent implements SerialPortEventListener {
 
     private static final int BAUDRATE = SerialPort.BAUDRATE_9600;
