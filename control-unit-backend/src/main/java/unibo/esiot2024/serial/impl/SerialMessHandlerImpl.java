@@ -20,11 +20,13 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
 
     @Override
     public String assembleMess(final float temperature, final SystemState curState, final int openingPercentage) {
-        final var message = new StringBuilder(PREFIX);
-        message.append(this.singleField("temperature", temperature)).append(SEPARATOR);
-        message.append(this.singleField("mode", curState)).append(SEPARATOR);
-        message.append(this.singleField("openingLevel", openingPercentage)).append(POSTFIX);
-        return message.toString();
+        return PREFIX
+            + this.singleField("temperature", temperature)
+            + SEPARATOR
+            + this.singleField("mode", curState)
+            + SEPARATOR
+            + this.singleField("openingLevel", openingPercentage)
+            + POSTFIX;
     }
 
     @Override
@@ -42,8 +44,8 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
             : Optional.empty();
     }
 
-    private String singleField(final String name, Object value) {
-        return String.valueOf(DELIMITER)
+    private String singleField(final String name, final Object value) {
+        return DELIMITER
             + name
             + ASSIGNMENT
             + (
@@ -51,7 +53,7 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
                 ? (value == SystemState.MANUAL ? "manual" : "automatic")
                 : String.valueOf(value)
             )
-            + String.valueOf(DELIMITER);
+            + DELIMITER;
     }
 
 }
