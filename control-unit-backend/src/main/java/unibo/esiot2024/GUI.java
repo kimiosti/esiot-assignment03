@@ -19,6 +19,7 @@ public final class GUI {
 
     /**
      * Instantiates a simple graphical interface to collect database login data.
+     * @param msgs messages to be shown by the user interface.
      */
     public GUI(final String... msgs) {
         final var frame = new JFrame("Database login");
