@@ -2,12 +2,16 @@ package unibo.esiot2024;
 
 import java.sql.SQLException;
 
+import jssc.SerialPortException;
 import unibo.esiot2024.central.impl.CentralControllerImpl;
+import unibo.esiot2024.serial.SerialAgent;
 
 /**
  * Launcher class for the backend application.
  */
 public final class Application {
+
+    private static final String FALLBACK_SERIAL_PORT = "COM4";
 
     private Application() { }
 
@@ -16,7 +20,7 @@ public final class Application {
      * @param args eventual command line arguments passed to the application.
      */
     public static void main(final String[] args) {
-        new GUI("Inserire le credenziali per la connessione a MySQL");
+        new GUI("Insert credentials to access MySQL database");
     }
 
 
@@ -27,19 +31,13 @@ public final class Application {
      * @throws SQLException
     */
     public static void launch(final String dbUser, final String dbPass) {
-        //boolean excepted = false;
         try {
-            new CentralControllerImpl(dbUser, dbPass);
+            final var controller = new CentralControllerImpl(dbUser, dbPass);
+            new SerialAgent(controller, FALLBACK_SERIAL_PORT);
         } catch (final SQLException e) {
-            //excepted = true;
-            new GUI("Errore di connessione", "controllare le credenziali o lo stato del server MySQL");
+            new GUI("Database connection error", "check your credentials and the state of the MySQL server");
+        } catch (final SerialPortException e) {
+            new GUI("Error while connecting to Serial Line", "Insert database credentials to log back in");
         }
-
-        /**
-         * TODO
-         * qui inizializza le altre componenti del controller assicurandoti che l'inizializzazione del database vada
-         * a buon fine. Sopra solo il controller centrale con l'accesso diretto al DB.
-         */
-        /*if (!excepted) { }*/
     }
 }
