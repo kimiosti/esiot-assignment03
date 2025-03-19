@@ -6,7 +6,7 @@
 
 #define CAPACITY 8
 
-class CoopRRScheduler : Scheduler {
+class CoopRRScheduler : public Scheduler {
     public:
         CoopRRScheduler(long period);
         void bind(Task* task);
