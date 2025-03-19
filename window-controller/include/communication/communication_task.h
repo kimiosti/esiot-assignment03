@@ -11,6 +11,8 @@ class CommunicationTask: public Task {
         void step(long sched_period);
 
     private:
+        String assembleMessage();
+        void parseMessage();
         int step_count;
         long period;
         DirtyStateTracker *dirty_state_tracker;
