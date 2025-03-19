@@ -11,8 +11,6 @@ import unibo.esiot2024.serial.SerialAgent;
  */
 public final class Application {
 
-    private static final String FALLBACK_SERIAL_PORT = "COM4";
-
     private Application() { }
 
     /**
@@ -20,7 +18,7 @@ public final class Application {
      * @param args eventual command line arguments passed to the application.
      */
     public static void main(final String[] args) {
-        new GUI("Insert credentials to access MySQL database");
+        new GUI("Insert controller setup configuration");
     }
 
 
@@ -28,16 +26,18 @@ public final class Application {
      * Launches the backend application.
      * @param dbUser the username for the database connection.
      * @param dbPass the password for the database connetcion.
+     * @param serialPort the default port for the serial connection.
+     * @param broker the default MQTT broker.
      * @throws SQLException
     */
-    public static void launch(final String dbUser, final String dbPass) {
+    public static void launch(final String dbUser, final String dbPass, final String serialPort, final String broker) {
         try {
             final var controller = new CentralControllerImpl(dbUser, dbPass);
-            new SerialAgent(controller, FALLBACK_SERIAL_PORT);
+            new SerialAgent(controller, serialPort);
         } catch (final SQLException e) {
             new GUI("Database connection error", "check your credentials and the state of the MySQL server");
         } catch (final SerialPortException e) {
-            new GUI("Error while connecting to Serial Line", "Insert database credentials to log back in");
+            new GUI("Error while connecting to Serial Line", "check the serial port state");
         }
     }
 }
