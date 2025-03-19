@@ -47,7 +47,10 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
     private String singleField(final String name, final Object value) {
         return DELIMITER
             + name
+            + DELIMITER
             + ASSIGNMENT
+            + EMPTY
+            + DELIMITER
             + (
                 value instanceof SystemState
                 ? (value == SystemState.MANUAL ? "manual" : "automatic")
