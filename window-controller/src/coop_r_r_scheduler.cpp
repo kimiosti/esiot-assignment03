@@ -1,4 +1,4 @@
-#include "coop_r_r_scheduler.h"
+#include "scheduler/coop_r_r_scheduler.h"
 
 CoopRRScheduler::CoopRRScheduler(long period) {
     this->period = period;
