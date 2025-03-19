@@ -1,22 +1,22 @@
 #include "dirty_state_tracker.h"
 
 DirtyStateTracker::DirtyStateTracker() {
-    this->modeSwitchRequest = 0;
-    this->openingPercentage = 0;
+    this->mode_switch_request = 0;
+    this->opening_percentage = 0;
 }
 
 bool DirtyStateTracker::modeSwitchRequested() {
-    return this->modeSwitchRequest;
+    return this->mode_switch_request;
 }
 
 void DirtyStateTracker::requestModeSwitch() {
-    this->modeSwitchRequest = true;
+    this->mode_switch_request = true;
 }
 
 int DirtyStateTracker::getOpeningPercentage() {
-    return this->openingPercentage;
+    return this->opening_percentage;
 }
 
-void DirtyStateTracker::setOpeningPercentage(int openingPercentage) {
-    this->openingPercentage = openingPercentage;
+void DirtyStateTracker::setOpeningPercentage(int opening_percentage) {
+    this->opening_percentage = opening_percentage;
 }

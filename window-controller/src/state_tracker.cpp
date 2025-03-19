@@ -2,7 +2,7 @@
 
 StateTracker::StateTracker() {
     this->temperature = 0.0;
-    this->openingPercentage = 0;
+    this->opening_percentage = 0;
     this->mode = AUTOMATIC;
 }
 
@@ -11,11 +11,11 @@ float StateTracker::getTemperature() {
 }
 
 int StateTracker::getOpeningPercentage() {
-    return this->openingPercentage;
+    return this->opening_percentage;
 }
 
-void StateTracker::setOpeningPercentage(int openingPercentage) {
-    this->openingPercentage = openingPercentage;
+void StateTracker::setOpeningPercentage(int opening_percentage) {
+    this->opening_percentage = opening_percentage;
 }
 
 Mode StateTracker::getMode() {

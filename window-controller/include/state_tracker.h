@@ -12,13 +12,13 @@ class StateTracker {
         float getTemperature();
         void setTemperature(float temperature);
         int getOpeningPercentage();
-        void setOpeningPercentage(int openingPercentage);
+        void setOpeningPercentage(int opening_percentage);
         Mode getMode();
         void setMode(Mode mode);
 
     private:
         float temperature;
-        int openingPercentage;
+        int opening_percentage;
         Mode mode;
 };
 

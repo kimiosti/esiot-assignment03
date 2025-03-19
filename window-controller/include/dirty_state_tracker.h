@@ -7,11 +7,11 @@ class DirtyStateTracker {
         bool modeSwitchRequested();
         void requestModeSwitch();
         int getOpeningPercentage();
-        void setOpeningPercentage(int openingPercentage);
+        void setOpeningPercentage(int opening_percentage);
 
     private:
-        bool modeSwitchRequest;
-        int openingPercentage;
+        bool mode_switch_request;
+        int opening_percentage;
 };
 
 #endif
