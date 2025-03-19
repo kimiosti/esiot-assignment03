@@ -1,7 +1,9 @@
 package unibo.esiot2024;
 
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
+import java.util.stream.Stream;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -16,52 +18,66 @@ import javax.swing.JTextField;
 public final class GUI {
 
     private static final int TEXT_FIELD_COLUMNS = 10;
+    private static final int MAIN_GUI_ROWS = 6;
+    private static final int MAIN_GUI_COLS = 1;
+
+    private final JFrame frame;
 
     /**
      * Instantiates a simple graphical interface to collect database login data.
      * @param msgs messages to be shown by the user interface.
      */
     public GUI(final String... msgs) {
-        final var frame = new JFrame("Database login");
-        frame.setLayout(new GridLayout(4, 1));
+        this.frame = new JFrame("Controller setup");
+        this.frame.setLayout(new GridLayout(MAIN_GUI_ROWS, MAIN_GUI_COLS));
 
-        final var messagePanel = new JPanel(new GridLayout(msgs.length, 1));
-        for (final var msg : msgs) {
-            final var inner = new JPanel();
-            inner.add(new JLabel(msg));
-            messagePanel.add(inner);
-        }
+        final var messagePanel = new JPanel();
+        Stream.of(msgs).forEach(msg -> messagePanel.add(new JLabel(msg)));
+        this.frame.add(messagePanel);
 
-        final var userPanel = new JPanel();
-        final var username = new JTextField(TEXT_FIELD_COLUMNS);
-        userPanel.add(new JLabel("Username: "));
-        userPanel.add(username);
+        final var dbUser = this.singleInput("DB username:");
+        final var dbPassword = this.singlePassword("DB");
+        final var serialPort = this.singleInput("Serial port:");
+        final var mqttBroker = this.singleInput("MQTT broker:");
 
-        final var passPanel = new JPanel();
-        final var password = new JPasswordField(TEXT_FIELD_COLUMNS);
-        passPanel.add(new JLabel("Password: "));
-        passPanel.add(password);
-
-        final var submitPanel = new JPanel();
-        final var submit = new JButton("Login");
-        submit.addActionListener(e -> {
-            frame.dispose();
-            Application.launch(username.getText(), new String(password.getPassword()));
+        final var buttonPanel = new JPanel();
+        final var button = new JButton("Start");
+        button.addActionListener(e -> {
+            Application.launch(
+                dbUser.getText(),
+                String.valueOf(dbPassword.getPassword()),
+                serialPort.getText(),
+                mqttBroker.getText()
+            );
+            this.frame.dispose();
         });
-        submitPanel.add(submit);
+        buttonPanel.add(button);
 
-        frame.add(messagePanel);
-        frame.add(userPanel);
-        frame.add(passPanel);
-        frame.add(submitPanel);
+        this.frame.add(buttonPanel);
+        this.frame.setSize(new Dimension(
+            (int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2),
+            (int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2)
+        ));
+        this.frame.getRootPane().setDefaultButton(button);
+        this.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.frame.setVisible(true);
+    }
 
-        frame.getRootPane().setDefaultButton(submit);
+    private JTextField singleInput(final String label) {
+        final var panel = new JPanel();
+        panel.add(new JLabel(label));
+        final var field = new JTextField(TEXT_FIELD_COLUMNS);
+        panel.add(field);
+        this.frame.add(panel);
+        return field;
+    }
 
-        frame.setSize(
-            (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3,
-            (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 3
-        );
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    private JPasswordField singlePassword(final String prefix) {
+        final var panel = new JPanel();
+        panel.add(new JLabel(prefix + " password:"));
+        final var field = new JPasswordField(TEXT_FIELD_COLUMNS);
+        panel.add(field);
+        this.frame.add(panel);
+        return field;
     }
 }
