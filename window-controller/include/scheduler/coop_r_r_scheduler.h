@@ -1,8 +1,8 @@
 #ifndef __COOP_R_R_SCHEDULER__
 #define __COOP_R_R_SCHEDULER__
 
-#include "scheduler.h"
-#include "timer_impl.h"
+#include "scheduler/scheduler.h"
+#include "scheduler/timer_impl.h"
 
 #define CAPACITY 8
 

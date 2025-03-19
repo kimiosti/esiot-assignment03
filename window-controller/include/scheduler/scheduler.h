@@ -1,7 +1,7 @@
 #ifndef __SCHEDULER__
 #define __SCHEDULER__
 
-#include "task.h"
+#include "scheduler/task.h"
 
 class Scheduler {
     public:
