@@ -5,13 +5,11 @@
 
 class TimerImpl {
     public:
-        TimerImpl(long period);
-        void setPeriod(long period);
-        void waitForNextTick();
+        TimerImpl();
+        void waitForNextTick(long period);
 
     private:
         Timer *timer;
-        uint32_t period;
 };
 
 #endif

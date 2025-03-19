@@ -1,16 +1,11 @@
 #include "timer_impl.h"
 
-TimerImpl::TimerImpl(long period) {
+TimerImpl::TimerImpl() {
     this->timer = new Timer();
-    this->period = period;
 }
 
-void TimerImpl::setPeriod(long period) {
-    this->period = period;
-}
-
-void TimerImpl::waitForNextTick() {
-    while (this->timer->read() < this->period) { }
+void TimerImpl::waitForNextTick(long period) {
+    while (this->timer->read() < period) { }
     this->timer->pause();
     this->timer->start();
 }
