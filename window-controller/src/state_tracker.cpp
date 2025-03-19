@@ -14,10 +14,6 @@ int StateTracker::getOpeningPercentage() {
     return this->openingPercentage;
 }
 
-int StateTracker::getOpeningPercentage() {
-    return this->openingPercentage;
-}
-
 void StateTracker::setOpeningPercentage(int openingPercentage) {
     this->openingPercentage = openingPercentage;
 }
