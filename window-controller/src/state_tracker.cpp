@@ -10,6 +10,10 @@ float StateTracker::getTemperature() {
     return this->temperature;
 }
 
+void StateTracker::setTemperature(float temperature) {
+    this->temperature = temperature;
+}
+
 int StateTracker::getOpeningPercentage() {
     return this->opening_percentage;
 }
