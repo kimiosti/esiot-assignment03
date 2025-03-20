@@ -29,7 +29,7 @@ import unibo.esiot2024.utils.SystemState;
 )
 public final class SerialAgent implements SerialPortEventListener {
 
-    private static final int BAUDRATE = SerialPort.BAUDRATE_9600;
+    private static final int BAUDRATE = SerialPort.BAUDRATE_115200;
     private static final int DATA_BITS = SerialPort.DATABITS_8;
     private static final int STOP_BITS = SerialPort.STOPBITS_1;
     private static final int PARITY = SerialPort.PARITY_NONE;
