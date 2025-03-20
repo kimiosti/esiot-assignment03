@@ -6,6 +6,7 @@
 
 UserScreen::UserScreen() {
     this->screen = new LiquidCrystal_I2C(ADDRESS, ROWS, COLS);
+    this->screen->init();
     this->screen->backlight();
 }
 
@@ -14,6 +15,6 @@ void UserScreen::clear() {
 }
 
 void UserScreen::writeRow(int row, String content) {
-    this->screen->setCursor(row, 0);
+    this->screen->setCursor(0, row);
     this->screen->print(content);
 }
