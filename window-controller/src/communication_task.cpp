@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "communication/communication_task.h"
 
-#define BAUDRATE 9600
+#define BAUDRATE 115200
 
 const String PREFIX = "{ ";
 const String SEPARATOR = ", ";
@@ -52,8 +52,8 @@ void CommunicationTask::parseMessage() {
     this->state_tracker->setTemperature(Serial.parseFloat());
     Serial.readStringUntil(':');
     Serial.readStringUntil(DELIMITER);
-    String read = Serial.readStringUntil(':');
-    if (read.equalsIgnoreCase("automatic,")) {
+    String read = Serial.readStringUntil(DELIMITER);
+    if (read.equalsIgnoreCase("automatic\"")) {
         this->state_tracker->setMode(AUTOMATIC);
     } else {
         this->state_tracker->setMode(MANUAL);
