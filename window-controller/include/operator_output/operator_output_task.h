@@ -15,6 +15,8 @@ class OperatorOutputTask: public Task {
         long period;
         UserScreen *screen;
         StateTracker *state_tracker;
+        String formatPercentage();
+        String formatMode();
 };
 
 #endif
