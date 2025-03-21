@@ -39,9 +39,13 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
             .replace(String.valueOf(DELIMITER), EMPTY)
             .split(EMPTY);
 
-        return words.length == 4
+        try {
+            return words.length == 4
             ? Optional.of(new SerialRead(Boolean.parseBoolean(words[1]), Integer.parseInt(words[3])))
             : Optional.empty();
+        } catch (final NumberFormatException e) {
+            return Optional.empty();
+        }
     }
 
     private String singleField(final String name, final Object value) {
