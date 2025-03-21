@@ -22,6 +22,7 @@ CommunicationTask::CommunicationTask(long period, DirtyStateTracker *dirty_state
 void CommunicationTask::step(long sched_period) {
     this->step_count++;
     if (this->step_count * sched_period >= this->period) {
+        this->step_count = 0;
         Serial.println(this->assembleMessage());
         if (Serial.available()) {
             this->parseMessage();
