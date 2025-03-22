@@ -65,9 +65,8 @@ public final class SerialAgent implements SerialPortEventListener {
 
         if (event.isRXCHAR()) {
             try {
-                final var read = this.messageHandler.parseMess(
-                    this.port.readString(event.getEventValue())
-                );
+                final var mess = this.port.readString();
+                final var read = this.messageHandler.parseMess(mess);
                 read.ifPresent(readValues -> {
                     if (readValues.modeSwitchRequested()) {
                         this.controller.switchOperativeMode();
@@ -83,16 +82,14 @@ public final class SerialAgent implements SerialPortEventListener {
             }
 
             try {
-                port.writeString(
-                    dbRead.isPresent()
-                        ? this.messageHandler.assembleMess(
-                            dbRead.get().measure().temperature(),
-                            dbRead.get().state(),
-                            dbRead.get().openingPercentage()
-                        ) : this.messageHandler.assembleMess(0.0f, SystemState.NORMAL, 0),
-                    "UTF-8"
-                );
-            } catch (UnsupportedEncodingException | SerialPortException e) {
+                final var mess = dbRead.isPresent()
+                    ? this.messageHandler.assembleMess(
+                        dbRead.get().measure().temperature(),
+                        dbRead.get().state(),
+                        dbRead.get().openingPercentage()
+                    ) : this.messageHandler.assembleMess(0.0f, SystemState.NORMAL, 0);
+                port.writeString(mess, "UTF-8");
+            } catch (final UnsupportedEncodingException | SerialPortException e) {
                 Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(
                     Level.SEVERE,
                     "Serial line error: " + e.getMessage(),
