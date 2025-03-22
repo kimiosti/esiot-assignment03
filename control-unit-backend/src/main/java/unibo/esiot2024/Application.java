@@ -1,6 +1,8 @@
 package unibo.esiot2024;
 
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import jssc.SerialPortException;
 import unibo.esiot2024.central.impl.CentralControllerImpl;
@@ -11,6 +13,16 @@ import unibo.esiot2024.serial.SerialAgent;
  */
 public final class Application {
 
+    private static final String WRONG_USAGE = """
+            Bad arguments! Correct usage: app MySQLusername MySQLpassword serialPortName MQTTbroker
+            """;
+    private static final String SQL_PROBLEM = """
+            Error while connecting to MySQL! Check your credential or your local server status.
+            """;
+    private static final String SERIAL_PROBLEM = """
+            Error while opening the indicated serial port! Check the serial port availability.
+            """;
+
     private Application() { }
 
     /**
@@ -18,26 +30,17 @@ public final class Application {
      * @param args eventual command line arguments passed to the application.
      */
     public static void main(final String[] args) {
-        new GUI("Insert controller setup configuration");
-    }
-
-
-    /**
-     * Launches the backend application.
-     * @param dbUser the username for the database connection.
-     * @param dbPass the password for the database connetcion.
-     * @param serialPort the default port for the serial connection.
-     * @param broker the default MQTT broker.
-     * @throws SQLException
-    */
-    public static void launch(final String dbUser, final String dbPass, final String serialPort, final String broker) {
         try {
-            final var controller = new CentralControllerImpl(dbUser, dbPass);
-            new SerialAgent(controller, serialPort);
+            if (args.length == 4) {
+                final var controller = new CentralControllerImpl(args[0], args[1]);
+                new SerialAgent(controller, args[2]);
+            } else {
+                Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.SEVERE, WRONG_USAGE);
+            }
         } catch (final SQLException e) {
-            new GUI("Database connection error", "check your credentials and the state of the MySQL server");
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.SEVERE, SQL_PROBLEM);
         } catch (final SerialPortException e) {
-            new GUI("Error while connecting to Serial Line", "check the serial port state");
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.SEVERE, SERIAL_PROBLEM);
         }
     }
 }
