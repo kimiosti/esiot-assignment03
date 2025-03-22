@@ -10,7 +10,6 @@ import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
-import jssc.SerialPortList;
 import unibo.esiot2024.central.api.CentralController;
 import unibo.esiot2024.serial.api.SerialMessHandler;
 import unibo.esiot2024.serial.impl.SerialMessHandlerImpl;
@@ -42,19 +41,12 @@ public final class SerialAgent implements SerialPortEventListener {
     /**
      * Instantiates a serial agent on the only port attached, or the fallback if more than one port is detected.
      * @param controller the controller for callbacks and database queries.
-     * @param fallback the fallback port to which the agent connects.
+     * @param portName the serial port to which the agent connects.
     * @throws SerialPortException 
     */
-    public SerialAgent(final CentralController controller, final String fallback) throws SerialPortException {
+    public SerialAgent(final CentralController controller, final String portName) throws SerialPortException {
         this.controller = controller;
         this.messageHandler = new SerialMessHandlerImpl();
-
-        final String portName;
-        if (SerialPortList.getPortNames().length != 1) {
-            portName = fallback;
-        } else {
-            portName = SerialPortList.getPortNames()[0];
-        }
         this.port = new SerialPort(portName);
         this.openPort();
     }
