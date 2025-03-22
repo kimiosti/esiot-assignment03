@@ -26,7 +26,6 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
     @Override
     public Optional<SerialRead> parseMess(final String message) {
         final var words = message.split(EMPTY);
-        System.out.println(message);
         if (words.length == 2) {
             try {
                 return Optional.of(new SerialRead(
