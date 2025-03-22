@@ -16,11 +16,11 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
     @Override
     public String assembleMess(final float temperature, final SystemState curState, final int openingPercentage) {
         return "T"
-            + String.valueOf(temperature)
+            + temperature
             + " M"
             + (curState.equals(SystemState.MANUAL) ? "0" : "1")
             + " O"
-            + String.valueOf(openingPercentage);
+            + openingPercentage;
     }
 
     @Override
@@ -29,8 +29,8 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
         if (words.length == 2) {
             try {
                 return Optional.of(new SerialRead(
-                    Boolean.valueOf(words[0]),
-                    Integer.valueOf(words[1]).intValue()
+                    Boolean.parseBoolean(words[0]),
+                    Integer.parseInt(words[1])
                 ));
             } catch (final NumberFormatException e) {
                 return Optional.empty();
