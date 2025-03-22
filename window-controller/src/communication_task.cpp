@@ -3,13 +3,6 @@
 
 #define BAUDRATE 9600
 
-const String PREFIX = "{ ";
-const String SEPARATOR = ", ";
-const String ASSIGNMENT = ": ";
-const char DELIMITER = '"';
-const String POSTFIX = " }";
-const char WHITESPACE = ' ';
-
 CommunicationTask::CommunicationTask(long period, DirtyStateTracker *dirty_state_tracker, StateTracker *state_tracker) {
     this->step_count = 0;
     this->period = period;
@@ -31,36 +24,21 @@ void CommunicationTask::step(long sched_period) {
 }
 
 String CommunicationTask::assembleMessage() {
-    String value(PREFIX);
-    value.concat("\"modeSwitchRequested\"");
-    value.concat(ASSIGNMENT);
-    value.concat(DELIMITER);
-    value.concat(this->dirty_state_tracker->modeSwitchRequested() ? "true" : "false");
-    value.concat(DELIMITER);
-    value.concat(SEPARATOR);
-    value.concat("\"inputOpeningLevel\"");
-    value.concat(ASSIGNMENT);
-    value.concat(DELIMITER);
-    value.concat(this->dirty_state_tracker->getOpeningPercentage());
-    value.concat(DELIMITER);
-    value.concat(POSTFIX);
-    return value;
+    String message("");
+    message.concat(this->dirty_state_tracker->modeSwitchRequested() ? "true" : "false");
+    message.concat(' ');
+    message.concat(this->dirty_state_tracker->getOpeningPercentage());
+
+    return message;
 }
 
 void CommunicationTask::parseMessage() {
-    Serial.readStringUntil(':');
-    Serial.readStringUntil(DELIMITER);
-    this->state_tracker->setTemperature(Serial.parseFloat());
-    Serial.readStringUntil(':');
-    Serial.readStringUntil(DELIMITER);
-    String read = Serial.readStringUntil(DELIMITER);
-    if (read[0] == 'a') {
-        this->state_tracker->setMode(AUTOMATIC);
-    } else {
-        this->state_tracker->setMode(MANUAL);
-    }
-    Serial.readStringUntil(':');
-    Serial.readStringUntil(DELIMITER);
-    this->state_tracker->setOpeningPercentage(Serial.parseInt());
-    Serial.readString();
+    float temp = Serial.available() ? Serial.parseFloat() : this->state_tracker->getTemperature();
+    Mode mode = Serial.available() ? (Serial.parseInt() == 0 ? MANUAL : AUTOMATIC) : this->state_tracker->getMode();
+    int opening = Serial.available() ? Serial.parseInt() : this->state_tracker->getOpeningPercentage();
+    if (Serial.available()) Serial.readString();
+
+    this->state_tracker->setTemperature(temp);
+    this->state_tracker->setMode(mode);
+    this->state_tracker->setOpeningPercentage(opening);
 }
