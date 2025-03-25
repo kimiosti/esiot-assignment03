@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "operator_input/operator_input_task.h"
 #include "operator_input/tactile_button.h"
 #include "operator_input/potentiometer.h"
@@ -21,6 +22,6 @@ void OperatorInputTask::step(long sched_period) {
             this->dirty_state_tracker->requestModeSwitch();
         }
 
-        this->dirty_state_tracker->setOpeningPercentage(this-knob->readPercentage());
+        this->dirty_state_tracker->setOpeningPercentage(this->knob->readPercentage());
     }
 }
