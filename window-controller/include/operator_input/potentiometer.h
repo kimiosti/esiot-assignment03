@@ -10,6 +10,6 @@ class Potentiometer: public Knob {
 
     private:
         int pin;
-}
+};
 
 #endif
