@@ -1,6 +1,7 @@
 #ifndef __SERVO_MOTOR__
 #define __SERVO_MOTOR__
 
+#include <Arduino.h>
 #include <ServoTimer2.h>
 #include "window.h"
 

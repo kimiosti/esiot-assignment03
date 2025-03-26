@@ -1,5 +1,3 @@
-#include <Arduino.h>
-#include <ServoTimer2.h>
 #include "device/servo_motor.h"
 
 #define MIN_PULSE 750
