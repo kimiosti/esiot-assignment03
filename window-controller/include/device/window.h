@@ -1,7 +1,7 @@
 #ifndef __WINDOW__
 #define __WINDOW__
 
-class Door {
+class Window {
     public:
         virtual void lock() = 0;
         virtual void unlock() = 0;

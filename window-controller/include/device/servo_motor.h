@@ -4,7 +4,7 @@
 #include <ServoTimer2.h>
 #include "window.h"
 
-class ServoMotor: public Door {
+class ServoMotor: public Window {
     public:
         ServoMotor(int pin);
         void lock();
