@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "operator_input/potentiometer.h"
+#include "device/potentiometer.h"
 
 #define MAX_READ 1023
 #define MAX_VAL 100

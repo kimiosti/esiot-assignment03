@@ -3,8 +3,8 @@
 
 #include "scheduler/task.h"
 #include "dirty_state_tracker.h"
-#include "button.h"
-#include "knob.h"
+#include "device/button.h"
+#include "device/knob.h"
 
 class OperatorInputTask: public Task {
     public:

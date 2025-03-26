@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "operator_input/tactile_button.h"
+#include "device/tactile_button.h"
 
 TactileButton::TactileButton(int pin) {
     this->pin = pin;

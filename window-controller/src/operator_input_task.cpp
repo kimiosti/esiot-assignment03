@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "operator_input/operator_input_task.h"
-#include "operator_input/tactile_button.h"
-#include "operator_input/potentiometer.h"
+#include "device/tactile_button.h"
+#include "device/potentiometer.h"
 
 #define BUTTON_PIN 8
 #define KNOB_PIN A0
