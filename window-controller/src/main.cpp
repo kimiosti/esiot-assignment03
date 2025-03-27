@@ -21,11 +21,11 @@ void setup() {
   // put your setup code here, to run once:
   dirty_state_tracker = new DirtyStateTracker();
   state_tracker = new StateTracker();
-  scheduler = new CoopRRScheduler(50);
+  scheduler = new CoopRRScheduler(100);
 
   window_controlling_task = new WindowControllingTask(200, state_tracker);
-  operator_output_task = new OperatorOutputTask(100, state_tracker);
-  operator_input_task = new OperatorInputTask(50, dirty_state_tracker);
+  operator_output_task = new OperatorOutputTask(200, state_tracker);
+  operator_input_task = new OperatorInputTask(100, dirty_state_tracker);
   communication_task = new CommunicationTask(200, dirty_state_tracker, state_tracker);
 
   scheduler->bind(window_controlling_task);
