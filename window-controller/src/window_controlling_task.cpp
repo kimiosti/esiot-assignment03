@@ -21,6 +21,7 @@ void WindowControllingTask::step(long sched_period) {
         if (abs(percentage - this->last_measure) >= TOLERANCE) {
             this->idle_step_count = 0;
             this->last_measure = percentage;
+            this->window->unlock();
             this->window->openToLevel(percentage);
         } else {
             this->idle_step_count++;
