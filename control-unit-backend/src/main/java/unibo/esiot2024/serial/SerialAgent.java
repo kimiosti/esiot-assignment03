@@ -1,7 +1,6 @@
 package unibo.esiot2024.serial;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,7 +12,6 @@ import jssc.SerialPortException;
 import unibo.esiot2024.central.api.CentralController;
 import unibo.esiot2024.serial.api.SerialMessHandler;
 import unibo.esiot2024.serial.impl.SerialMessHandlerImpl;
-import unibo.esiot2024.utils.SystemInfo;
 import unibo.esiot2024.utils.SystemState;
 
 /**
@@ -28,15 +26,17 @@ import unibo.esiot2024.utils.SystemState;
 )
 public final class SerialAgent implements SerialPortEventListener {
 
-    private static final int BAUDRATE = SerialPort.BAUDRATE_9600;
+    private static final int BAUDRATE = SerialPort.BAUDRATE_115200;
     private static final int DATA_BITS = SerialPort.DATABITS_8;
     private static final int STOP_BITS = SerialPort.STOPBITS_1;
     private static final int PARITY = SerialPort.PARITY_NONE;
     private static final int CONTROL_MODE_MASK = SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT;
+    private static final String LOG_MESSAGE = "Serial line error: ";
 
     private final CentralController controller;
     private final SerialPort port;
     private final SerialMessHandler messageHandler;
+    private String lastMess;
 
     /**
      * Instantiates a serial agent on the only port attached, or the fallback if more than one port is detected.
@@ -53,41 +53,13 @@ public final class SerialAgent implements SerialPortEventListener {
 
     @Override
     public void serialEvent(final SerialPortEvent event) {
-        Optional<SystemInfo> dbRead = Optional.empty();
-
         if (event.isRXCHAR()) {
             try {
-                final var mess = this.port.readString();
-                final var read = this.messageHandler.parseMess(mess);
-                read.ifPresent(readValues -> {
-                    if (readValues.modeSwitchRequested()) {
-                        this.controller.switchOperativeMode();
-                    }
-                    this.controller.setOpeningLevel(readValues.openingPercentage());
-                });
-
-                dbRead = this.controller.getCurrentValues();
+                this.lastMess = this.port.readString();
             } catch (final SerialPortException e) {
-                if (dbRead.isEmpty()) {
-                    dbRead = this.controller.getCurrentValues();
-                }
+                this.logError(e);
             }
-
-            try {
-                final var mess = dbRead.isPresent()
-                    ? this.messageHandler.assembleMess(
-                        dbRead.get().measure().temperature(),
-                        dbRead.get().state(),
-                        dbRead.get().openingPercentage()
-                    ) : this.messageHandler.assembleMess(0.0f, SystemState.NORMAL, 0);
-                port.writeString(mess, "UTF-8");
-            } catch (final UnsupportedEncodingException | SerialPortException e) {
-                Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(
-                    Level.SEVERE,
-                    "Serial line error: " + e.getMessage(),
-                    e
-                );
-            }
+            new Thread(this::receiveMess).start();
         }
     }
 
@@ -101,6 +73,39 @@ public final class SerialAgent implements SerialPortEventListener {
         );
         this.port.setFlowControlMode(CONTROL_MODE_MASK);
         this.port.addEventListener(this);
+        this.port.purgePort(SerialPort.PURGE_RXCLEAR);
+    }
+
+    private void receiveMess() {
+        final var read = this.messageHandler.parseMess(this.lastMess);
+        read.ifPresent(readValues -> {
+            if (readValues.modeSwitchRequested()) {
+                this.controller.switchOperativeMode();
+            }
+            this.controller.setOpeningLevel(readValues.openingPercentage());
+        });
+
+        final var dbRead = this.controller.getCurrentValues();
+
+        try {
+            final var mess = dbRead.isPresent()
+                ? this.messageHandler.assembleMess(
+                    dbRead.get().measure().temperature(),
+                    dbRead.get().state(),
+                    dbRead.get().openingPercentage()
+                ) : this.messageHandler.assembleMess(0.0f, SystemState.NORMAL, 0);
+            port.writeString(mess, "UTF-8");
+        } catch (final UnsupportedEncodingException | SerialPortException e) {
+            this.logError(e);
+        }
+    }
+
+    private void logError(final Exception e) {
+        Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(
+            Level.SEVERE,
+            LOG_MESSAGE + e.getMessage(),
+            e
+        );
     }
 
 }
