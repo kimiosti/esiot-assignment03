@@ -1,7 +1,16 @@
 #include <Arduino.h>
 #include "communication/communication_task.h"
 
-#define BAUDRATE 9600
+#define BAUDRATE 115200
+
+String threeDigitRepresentation(int n) {
+    String rep("");
+    for (int i = 100; i > 0; i /= 10) {
+        rep.concat(n / i);
+        n -= (n / i) * i;
+    }
+    return rep;
+}
 
 CommunicationTask::CommunicationTask(long period, DirtyStateTracker *dirty_state_tracker, StateTracker *state_tracker) {
     this->step_count = 0;
@@ -25,20 +34,13 @@ void CommunicationTask::step(long sched_period) {
 
 String CommunicationTask::assembleMessage() {
     String message("");
-    message.concat(this->dirty_state_tracker->modeSwitchRequested() ? "true" : "false");
+    message.concat(this->dirty_state_tracker->modeSwitchRequested() ? "t" : "f");
     message.concat(' ');
-    message.concat(this->dirty_state_tracker->getOpeningPercentage());
+    message.concat(threeDigitRepresentation(this->dirty_state_tracker->getOpeningPercentage()));
 
     return message;
 }
 
 void CommunicationTask::parseMessage() {
-    float temp = Serial.available() ? Serial.parseFloat() : this->state_tracker->getTemperature();
-    Mode mode = Serial.available() ? (Serial.parseInt() == 0 ? MANUAL : AUTOMATIC) : this->state_tracker->getMode();
-    int opening = Serial.available() ? Serial.parseInt() : this->state_tracker->getOpeningPercentage();
-    if (Serial.available()) Serial.readString();
 
-    this->state_tracker->setTemperature(temp);
-    this->state_tracker->setMode(mode);
-    this->state_tracker->setOpeningPercentage(opening);
 }
