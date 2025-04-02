@@ -10,8 +10,11 @@ import unibo.esiot2024.utils.SystemState;
  */
 public final class SerialMessHandlerImpl implements SerialMessHandler {
 
-    private static final String EMPTY = " ";
-
+    private static final int INCOMING_MESS_LENGTH = 7;
+    private static final int MODE_SWITCH_BEGIN = 0;
+    private static final int MODE_SWITCH_END = 1;
+    private static final int OPENING_PERCENTAGE_BEGIN = 2;
+    private static final int OPENING_PERCENTAGE_END = 5;
 
     @Override
     public String assembleMess(final float temperature, final SystemState curState, final int openingPercentage) {
@@ -25,16 +28,11 @@ public final class SerialMessHandlerImpl implements SerialMessHandler {
 
     @Override
     public Optional<SerialRead> parseMess(final String message) {
-        final var words = message.split(EMPTY);
-        if (words.length == 2) {
-            try {
-                return Optional.of(new SerialRead(
-                    Boolean.parseBoolean(words[0]),
-                    Integer.parseInt(words[1])
-                ));
-            } catch (final NumberFormatException e) {
-                return Optional.empty();
-            }
+        if (message.length() == INCOMING_MESS_LENGTH) {
+            return Optional.of(new SerialRead(
+                "t".equals(message.substring(MODE_SWITCH_BEGIN, MODE_SWITCH_END)),
+                Integer.parseInt(message.substring(OPENING_PERCENTAGE_BEGIN, OPENING_PERCENTAGE_END))
+            ));
         } else {
             return Optional.empty();
         }
