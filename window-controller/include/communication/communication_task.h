@@ -17,6 +17,7 @@ class CommunicationTask: public Task {
         long period;
         DirtyStateTracker *dirty_state_tracker;
         StateTracker *state_tracker;
+        String *incoming_message;
 };
 
 #endif
