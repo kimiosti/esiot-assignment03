@@ -19,15 +19,14 @@
 	\section{Temperature Monitor}
 	It's the main system component. It periodically measures the room's temperature, and communicates it to the \textit{Control Unit}, which is responsible of controlling the other component's behavior according to the valued registered by this subsystem. The frequency of the measurements depends on the state of the system, which is stored in the \textit{Control Unit} and is communicated to this component in real-time. It's connected to the \textit{Control Unit} via the \textit{MQTT} protocol, and must include a LED signaling whether the connection is properly established.
 	\section{Window Controller}
-	It's the in-place operator interface. It's responsible of physically triggering the window movement, according to the values communicated by the \textit{Control Unit} if the system is in automatic mode, or according to the value controlled by the potentiometer if the system is in manual mode. It has a button to switch between these two modes, and it also has a screen that tells the operator the state of the system at any given time. All necessary info is communicated by the \textit{Control Unit} via Serial communication.
+	It's the component which physically controls the window movement. Its opening level is actuated as indicated by the \textit{Control Unit}, and it depends on the temperature when in automatic mode. It also exposes an in-place operating dashboard, consisting of an LCD screen to check some info on the system at any time, a button to switch between manual and automatic mode, and a potentiometer to control the opening level when in manual mode. All information exchange with the \textit{Control Unit} is based on \textit{Serial Line} communication.
 	\section{Operator Dashboard}
 	It's a web-based user interface that allows operators to work remotely on the system. It shows a graph representing the current state of the system and a brief history of the last measurements, sided by a statistic showing the average, minimum and maximum values in the last period of time. In addition to this info, it exposes a simple operator interface which allows the user to switch between manual and automatic mode, as well as to restore the system status in case an alarm was triggered. It communicates with the \textit{Control Unit} via the \textit{HTTP} protocol in order to reflect user actions on the actual in-place subsystems.
 	\section{Control Unit}
 	It's the core of the entire system, and it serves as a mediator between subsystem interactions. Its main function is to track the system state and all info related to the measurements and to the current operating mode (manual or automatic). It also determines the sampling frequency for the \textit{Temperature Monitor} according to the current measure, and the window opening percentage according to the system state (if in automatic mode). It's also responsible of storing all system data, including the last measurements that the Dashboard shows in its graph, and the average, minimum and maximum values that are shown to the operator.
 	
 	\chapter{System Architecture}
-	This system can be structured dividing responsibilities according to the MVC architectural pattern.
-	\newline In particular, the Controller behavior is implemented by the \textbf{Control Unit}, while the main View component interfacing towards the user would be the \textit{Operator Dashboard}. The \textit{Temperature Monitor} is fully a Model component, since it samples the real-world status value and shares it with the \textit{Control Unit}. Finally, the \textit{Window Controller} can be considered to be almost completely Model, with a part of View in the Control Panel, which allows the user to switch mode between manual and automatic, and to control the window angle when in manual mode.
+	The system architecture can be analyzed splitting the system in the four main sub-systems highlighted previously.
 	\section{Temperature Monitor}
 	This subsystem's main feature is sampling the room's temperature with a given frequency. It's also responsible for sending that data to the \textit{Control Unit}, so it must include a component handling the subsystem connectivity to the back-end.
 	\newline Its detailed behavior can be described analyzing each sub-component with its responsibilities. Each sub-component can be modeled as a Task, and all Tasks run in parallel in the subsystem on which this part of the application is deployed. All Tasks can be modeled as Synchronous Finite State Machines.
@@ -69,18 +68,18 @@
 		In this scheme, it's obvious how this Task's state depends directly on the state of the \textit{Connection Monitoring Task}. In particular, the LED is shown as green only when the device is fully connected to the Internet and the \textit{MQTT} subscription is running properly.
 		\paragraph{Note} the sub-system's connection state is kept internally, and is not communicated to the \textit{Control Unit}. This because, architecturally speaking, the rest of the system is not concerned about this specific sub-system's connection state, since it would be simply cut out of the communication network. So, connection state is here only tracked to help the LED Task show the user the correct information, but the rest of the system - if well decoupled - is required to keep running even if the communication went down (or theoretically speaking, also if there were multiple devices tracking the temperature and connected to the same \textit{MQTT} topic and broker).
 	\section{Window Controller}
-	This component's main behavior is to actuate the window opening. In doing so, it's connected to the \textit{Control Unit} via \textit{Serial Line} and it exposes a little operator panel to directly manipulate the window, switching between manual or automatic mode and controlling the window opening level, if in manual mode. Its behavior can be modeled with multiple Tasks, each one represented by a Synchronous Finite State Machine.
+	This component's main responsibility is to actuate the window opening level, based on the values sent by the \textit{Control Unit} via \textit{Serial Line}. Furthermore, it exposes a small operating dashboard to switch between operative modes (automatic or manual) and to control the window's opening level, if in manual mode. Its behavior can be modeled with a task-based architecture, giving each task a small set of features to handle. Each one of these tasks can be modeled as a \textit{synchronous Finite State Machine}, timed by a central scheduler whose only responsibility is to keep everything temporized.
 		\subsection{Window Controlling Task}
-		This Task is responsible of actuating the system's behavior on the actual window. Its only duty is to set the window state each period, querying the \textit{Communication Task} to retrieve the current opening value signaled by the \textit{Control Unit}.
+		This Task is the one actually responsible of actuating the window opening level. It has a period of 200ms and its only job is to set the window opening percentage as demanded by the \textit{Control Unit}, regardless of the overall system state.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/window-controlling-fsm.png}
 			\caption{FSM modeling the window controlling task behavior}
 			\label{img:window-controller/window-controlling-fsm}
 		\end{figure}
-		It's obvious how this task's behavior is agnostic of the state of the rest of the system. Simply, each period it retrieves the last received opening value (which is managed completely by the \textit{Control Unit} for consistency reasons) and actuates it to the window via the servomotor.
+		It's obvious in this representation how this \textit{Finite State Machine} actually only has one state, and repeatedly sets the window's opening level based on the system's demands.
 		\subsection{Operator Input Task}
-		This Task is responsible of collecting user input, and of communicating it to the \textit{Control Unit} to modify the entire system's state accordingly.
+		This Task is responsible of collecting user input, and of communicating it to the \textit{Control Unit} to modify the entire system's state accordingly. It has a period of 100ms: it is a time short enough to never lose button pressing events, but long enough to avoid \textit{bouncing} side effects when pressing the button, which might lead to unpredictable behavior.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/operator-input-fsm.png}
@@ -89,23 +88,32 @@
 		\end{figure}
 		In this scheme it's underlined how this tasks accepts operator input via the potentiometer only in manual mode. For better consistency though, data is here not directly sent to the \textit{Window Controlling Task}, but rather a decoupling level is inserted between the two, centralizing state handling responsibilities in the \textit{Control Unit}.
 		\subsection{Operator Output Task}
-		This task is responsible of showing the operator some information about the system's current state. Obviously, for the reasons described above, the system's state is described as received from the \textit{Control Unit}, delegating it all data consistency issues.
+		This task is responsible of showing the operator some information about the system's current state. Obviously, for the reasons described above, the system's state is described as received from the \textit{Control Unit}, delegating it all data consistency issues. It has a period of 200ms.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/operator-output-fsm.png}
 			\caption{FSM modeling the Operator Output Task}
 			\label{img:window-controller/operator-output-fsm}
 		\end{figure}
-		In this scheme, it's depicted how this task is showing different information according to the state of the system. On the other hand, state transitions are not handled in any way by this task, and the \textit{modeSwitch} is some input received by the \textit{Control Unit}.
+		In this scheme, it's depicted how this task is showing different information according to the state of the system. On the other hand, state transitions are not handled in any way by this task, and the \textit{modeSwitch} depends on some input received by the \textit{Control Unit}.
 		\subsection{Communication Task}
-		This task is responsible of communicating via the \textit{Serial Line} with the \textit{Control Unit}. It's a core feature of this sub-system, since correct communication ensures data (and more importantly behavior) consistency when translating computation into actuation.
+		This task is responsible of communicating via the \textit{Serial Line} with the \textit{Control Unit}. It's a core feature of this sub-system, since correct communication ensures data (and more importantly behavior) consistency when translating computation into actuation. It has a period of 200ms.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/communication-fsm.png}
 			\caption{FSM modeling the communication task behavior}
 			\label{img:window-controller/communication-fsm}
 		\end{figure}
-		The Communication Task checks for new messages periodically, and expects to receive each period a message containing the current opening level, the current mode and the current temperature. On the other hand, it periodically sends a message containing a "dirty" state, which is the one requested by the user via the operating panel. It's then a \textit{Control Unit}'s responsibility to properly modify the actual state of the system.
+		Each period this Task (which is clearly depicted as state-agnostic) sends a message containing this sub-system's demands for the \textit{Control Unit} - in particular whether the mode was switched and the last input opening level - and checks for a response's availability. Whenever an incoming message is completely received, it is analyzed by this Task, which stores the current state of the system as demanded by the \textit{Control Unit}.
+		\subsection{Shared Data}
+		In this sub-system, shared data between Tasks is crucial for behavior consistency. For this purpose, two objects are exploited: a \textit{Dirty State Tracker} which saves the current system input requests, and a \textit{State Tracker} which saves the last \textit{Control Unit} demands, considered to be the only source of valid data in the system.
+		\begin{figure}[H]
+			\centering{}
+			\includegraphics[scale=0.5]{img/window-controller/shared-data.png}
+			\caption{Dependencies between tasks and shared data}
+			\label{img:window-controller/shared-data}
+		\end{figure}
+		The two state tracking objects have to be \textit{Singletons}, since they store the only valid sub-system state.
 	\section{Operator Dashboard}
 	The \textit{Operator Dashboard} serves as a remote user interface to control the system. In particular it offers a graphical representation of the system's current state - which includes a graph of temperature history, the current average, maximum and minimum temperature values in the last period of time, the system operating mode and the window opening level. In addition to this, it allows the operator to switch between automatic and manual modes, as well as a button to restore the system after solving an issue which caused an alarm. It's connected to the \textit{Control Unit} via \textit{HTTP}.
 	\section{Control Unit}
@@ -141,12 +149,24 @@
 		\label{img:window-controller/circuit}
 	\end{figure}
 	In this scheme, available at \href{https://www.tinkercad.com/things/2nadVXk0wQ5-esiot-assignment-03-arduino?sharecode=t4LayAw_Rc1SNLqdSHt3uK_EuT6TttEPHQjHAwEp-Zc}{\textit{this link}}, is depicted the detailed circuit for the \textit{Window Controller}, deployed on an \textit{Arduino UNO Board} and programmed relying on the \textit{Wiring} framework.
-	\newline One of the main concerns here is to implement our own scheduler, since Arduino doesn't support any kind of Operating System. This can be easily achieved implementing a cooperative round robin scheduler, since all Tasks have finite - and relatively short - execution routines. In addition to that, this kind of scheduler also defines implicit priorities among tasks, which can be used to the developer's advantage deploying tasks in such a way to avoid invalid data reads (e.g. collecting input and forwarding it to the \textit{Control Unit} after having actuated the consistent data collected earlier). Attention must be paid to defining the Tasks' periods, in order to avoid exceeding deadlines on one hand and event loss on the other.
-	\newline Another concern is the data format to send on the \textit{Serial Line}. All messages are formatted in JSON notation, in order to be consistent with the other components' communication standard. From the \textit{Control Unit} to the \textit{Window Controller}, the message contains the last measured temperature value, the current control mode (automatic or manual) and the current opening level to be actuated. On the other hand, the \textit{Window Controller} sends a JSON object containing two values, representing respectively if a mode switch was requested, and the opening level requested by the in-place operator. The handling of those two values is delegated to the \textit{Control Unit}, which is the one coordinating all sub-systems and storing the valid representation of the system's state at any time.
+	\newline Working on an \textit{Arduino UNO Board} relieves the programmer from all kind of concurrency-related concerns (which would be crucial in this environment, where all tasks work on the same two shared \textit{Singletons}) since the Board is equipped with a single-core micro-controller.
+	\newline On the other hand, one of the main concerns is to implement our own scheduler, since Arduino UNO doesn't support any kind of Operating System. This can be easily achieved implementing a \textit{Cooperative Round Robin Scheduler}, since all Tasks have finite - and relatively short - execution routines. The only things to care for are the scheduler period and the implicit Task priorities that this kind of scheduler defines, since it runs some Tasks before others.
+	\newline For what concerns the scheduler period, the two mutually exclusive aspects to keep in mind are \textit{deadlines} and \textit{event loss}: the ideal period would be short enough to never lose events, and long enough to allow all Tasks to execute in its duration, so to avoid failing deadlines. The ideal choice for the scheduler length would be the Tasks periods least common divisor, which is in my case 100ms, long enough to allow for all tasks to execute and short enough to read all events, since the \textit{Operator Input Task} has a period of 100ms itself.
+	\newline For what concerns implicit Task priorities, it's not really an issue in this sub-system. This because data is always valid, since the only valid source of data is considered to be the \textit{Control Unit} (and therefore the reads performed by the \textit{Communication Task} on the \textit{Serial Line}), and because possible delays introduces by Task execution order are in the magnitude of tens of milliseconds, not relevant since the unit interacts with human operators and controls a servo motor, which has longer operating times.
+	\newline Another aspect to deal with is data format to be sent on the \textit{Serial Line}. Messages on the Serial Line are meant to be as light as possible, to lower as much as possible transmission times and parsing times in a resource-constrained environment such as the Arduino UNO Board.
+	\newline \textit{Outgoing} messages have a fixed length of 5 characters: the first represents with a letter (t or f) whether the operator has requested a mode switch pressing the tactile button, then a space and the percentage represented as a three digit number. For example, a message requesting a mode switch and inputting an 80\% opening level would be
+	\begin{verbatim}
+		t 080
+	\end{verbatim}
+	\textit{Incoming} messages also have a fixed length of 14 characters, and are made of three parts. The overall structure is
+	\begin{verbatim}
+		Txx.xx Mx Oxxx
+	\end{verbatim}
+	where the first part represents the temperature truncated to the second decimal digit, the second one represents whether the system is currently in manual mode, and the third one represents the last valid opening level as recorded on the system database.
 		\subsection{Libraries and External Dependencies}
 		For the scheduler timing purposes, I relied on this \href{https://github.com/sstaub/Timer}{\textit{Timer library}} to avoid relying on system timer interrupts.
 		\newline The LCD Screen, which works with the \textit{I\textsuperscript{2}C} protocol, is controlled by the \href{https://docs.arduino.cc/libraries/liquidcrystal-i2c/}{\textit{LiquidCrystal I\textsuperscript{2}C library}} to avoid having to handle all the low-level aspects of that communication protocol.
-		\newline The servo motor is controlled via the \href{https://github.com/nabontra/ServoTimer2}{\textit{Servo Timer 2 library}}, which exploits one of the 8-bit system timers leaving the only 16-bit timer (Timer 1) free for other purposes.
+		\newline The servo motor is controlled via the \href{https://github.com/nabontra/ServoTimer2}{\textit{ServoTimer2 library}}, which exploits one of the 8-bit system timers leaving the only 16-bit timer (Timer 1) free for other purposes.
 	\section{Operator Dashboard}
 	This sub-system is a web-based application that allows an operator to inspect the current state of the system, and to perform some simple actions on it. The core of this system is the user interface, realized with \textit{HTML, CSS} and \textit{JavaScript}.
 	\newline In particular, \textit{HTML} and \textit{CSS} are used to structure the page, and are retrieved whenever a new dashboard window is open, and then \textit{JavaScript} handles automatic refresh and user operations. Automatic refresh is needed to retrieve - via \textit{HTTP GET} requests at a specific \textit{URL} - the data to be shown to the operator, while on the other hand user input is handled via \textit{HTTP POST} requests to send data to the \textit{Control Unit}.
