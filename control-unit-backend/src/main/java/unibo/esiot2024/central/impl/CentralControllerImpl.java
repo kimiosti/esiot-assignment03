@@ -23,6 +23,7 @@ public final class CentralControllerImpl implements CentralController {
     private static final float T1 = 30.0f;
     private static final float T2 = 35.0f;
     private static final long TOO_HOT_TIME_THRESHOLD = 5000;
+    private static final int OPENING_TOLERANCE = 5;
 
     private final DatabaseAccessHandler handler;
     private long lastModeSwitchTS;
@@ -56,7 +57,10 @@ public final class CentralControllerImpl implements CentralController {
     @Override
     public void setOpeningLevel(final int openingPercentage) {
         final var curValues = this.getCurrentValues();
-        if (curValues.isPresent() && curValues.get().state().equals(SystemState.MANUAL)) {
+        if (curValues.isPresent()
+            && curValues.get().state().equals(SystemState.MANUAL)
+            && Math.abs(curValues.get().openingPercentage() - openingPercentage) > OPENING_TOLERANCE
+        ) {
             this.recordValues(
                 curValues.get().measure().temperature(),
                 curValues.get().state(),
