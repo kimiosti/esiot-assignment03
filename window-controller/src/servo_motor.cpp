@@ -1,7 +1,7 @@
 #include "device/servo_motor.h"
 
 #define MIN_PULSE 750
-#define PERCENTILE_SIZE 150
+#define PERCENTILE_SIZE 7.5
 
 ServoMotor::ServoMotor(int pin) {
     this->pin = pin;
@@ -19,5 +19,5 @@ void ServoMotor::unlock() {
 }
 
 void ServoMotor::openToLevel(int percentage) {
-    this->motor->write(MIN_PULSE + (percentage * PERCENTILE_SIZE));
+    this->motor->write(MIN_PULSE + (int) (percentage * PERCENTILE_SIZE));
 }
