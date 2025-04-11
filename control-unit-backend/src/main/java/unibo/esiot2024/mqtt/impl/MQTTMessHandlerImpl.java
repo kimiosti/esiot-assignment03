@@ -15,7 +15,7 @@ public final class MQTTMessHandlerImpl implements MQTTMessHandler {
     }
 
     @Override
-    public String assembleMess(float frequency) {
+    public String assembleMess(int frequency) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'assembleMess'");
     }

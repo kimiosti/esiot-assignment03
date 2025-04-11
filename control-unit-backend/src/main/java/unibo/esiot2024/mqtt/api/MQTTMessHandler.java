@@ -19,5 +19,5 @@ public interface MQTTMessHandler {
      * @param frequency the frequency to be sent via MQTT.
      * @return a {@link String} representing the correctly formatted message.
      */
-    String assembleMess(float frequency);
+    String assembleMess(int frequency);
 }
