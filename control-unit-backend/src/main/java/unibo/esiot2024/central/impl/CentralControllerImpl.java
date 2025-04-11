@@ -70,13 +70,14 @@ public final class CentralControllerImpl implements CentralController {
     }
 
     @Override
-    public void recordMeasure(final TemperatureMeasure measure) {
+    public SystemState recordMeasure(final TemperatureMeasure measure) {
         final var curValues = this.getCurrentValues();
         this.accessDatabase(AccessMode.WRITE, Optional.of(new SystemInfo(
             measure,
             this.getStateByTemperature(measure.temperature(), curValues),
             this.getOpeningLevelByTemperature(measure.temperature(), curValues)
         )));
+        return this.getStateByTemperature(measure.temperature(), curValues);
     }
 
     @Override

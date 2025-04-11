@@ -3,6 +3,7 @@ package unibo.esiot2024.central.api;
 import java.util.Optional;
 
 import unibo.esiot2024.utils.SystemInfo;
+import unibo.esiot2024.utils.SystemState;
 import unibo.esiot2024.utils.TemperatureMeasure;
 
 /**
@@ -25,7 +26,7 @@ public interface CentralController {
      * Requests a certain measure to be recorded.
      * @param measure the measure to be recorded.
      */
-    void recordMeasure(TemperatureMeasure measure);
+    SystemState recordMeasure(TemperatureMeasure measure);
 
     /**
      * Requests the system to restore its functions.
