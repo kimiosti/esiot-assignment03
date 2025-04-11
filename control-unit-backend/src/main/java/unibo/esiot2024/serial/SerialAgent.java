@@ -15,7 +15,7 @@ import unibo.esiot2024.serial.impl.SerialMessHandlerImpl;
 import unibo.esiot2024.utils.SystemState;
 
 /**
- * Implementation for the {@link SerialAgent} interface.
+ * Serial Agent of the control unit.
  */
 @SuppressFBWarnings(
     value = "EI_EXPOSE_REP2",
