@@ -25,6 +25,7 @@ public interface CentralController {
     /**
      * Requests a certain measure to be recorded.
      * @param measure the measure to be recorded.
+     * @return the state of the system depending on the temperature measurement.
      */
     SystemState recordMeasure(TemperatureMeasure measure);
 
