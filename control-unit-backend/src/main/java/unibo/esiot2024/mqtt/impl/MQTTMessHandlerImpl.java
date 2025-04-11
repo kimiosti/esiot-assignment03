@@ -1,6 +1,7 @@
 package unibo.esiot2024.mqtt.impl;
 
 import unibo.esiot2024.mqtt.api.MQTTMessHandler;
+import unibo.esiot2024.utils.TemperatureMeasure;
 
 /**
  * Implementation for the {@link MQTTMessHandler} interface.
@@ -8,7 +9,7 @@ import unibo.esiot2024.mqtt.api.MQTTMessHandler;
 public final class MQTTMessHandlerImpl implements MQTTMessHandler {
 
     @Override
-    public MQTTRead parseMess(String mess) {
+    public TemperatureMeasure parseMess(String mess) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'parseMess'");
     }

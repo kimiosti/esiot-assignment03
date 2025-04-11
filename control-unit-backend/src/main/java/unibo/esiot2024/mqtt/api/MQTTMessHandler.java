@@ -1,6 +1,6 @@
 package unibo.esiot2024.mqtt.api;
 
-import unibo.esiot2024.mqtt.impl.MQTTRead;
+import unibo.esiot2024.utils.TemperatureMeasure;
 
 /**
  * MQTT message handler.
@@ -12,7 +12,7 @@ public interface MQTTMessHandler {
      * @param mess the message to be parsed.
      * @return a {@link MQTTRead} instance carrying the data.
      */
-    MQTTRead parseMess(String mess);
+    TemperatureMeasure parseMess(String mess);
 
     /**
      * Assembles a message to be published via MQTT.
