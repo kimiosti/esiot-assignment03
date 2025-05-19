@@ -17,7 +17,7 @@
 	\chapter{System Requirements}
 	The system is a smart IoT-based temperature monitor. In particular, it measures a closed environment's temperature at any given time, and controls a window connected to a motor to properly ventilate the room in case of critical temperatures. It also implements a manual mode, which can be activated via a button on the \textit{Window Controller}, or via a web-based \textit{Operator Dashboard}, that allows an operator to physically control the window opening angle thanks to a potentiometer attached to the \textit{Window Controller}.
 	\section{Temperature Monitor}
-	It's the main system component. It periodically measures the room's temperature, and communicates it to the \textit{Control Unit}, which is responsible of controlling the other component's behavior according to the valued registered by this subsystem. The frequency of the measurements depends on the state of the system, which is stored in the \textit{Control Unit} and is communicated to this component in real-time. It's connected to the \textit{Control Unit} via the \textit{MQTT} protocol, and must include a LED signaling whether the connection is properly established.
+	It's the main system component. It periodically samples the room's temperature, and communicates it to the \textit{Control Unit}, which is responsible of controlling the other component's behavior according to the value recorded by this subsystem. The frequency of the measurements depends on the state of the system, which is stored in the \textit{Control Unit} and communicated to this component in real-time. It communicates with the \textit{Control Unit} via the \textit{MQTT} protocol, and must include a LED signaling whether the connection is properly established.
 	\section{Window Controller}
 	It's the component which physically controls the window movement. Its opening level is actuated as indicated by the \textit{Control Unit}, and it depends on the temperature when in automatic mode. It also exposes an in-place operating dashboard, consisting of an LCD screen to check some info on the system at any time, a button to switch between manual and automatic mode, and a potentiometer to control the opening level when in manual mode. All information exchange with the \textit{Control Unit} is based on \textit{Serial Line} communication.
 	\section{Operator Dashboard}
@@ -28,8 +28,8 @@
 	\chapter{System Architecture}
 	The system architecture can be analyzed splitting the system in the four main sub-systems highlighted previously.
 	\section{Temperature Monitor}
-	This subsystem's main feature is sampling the room's temperature with a given frequency. It's also responsible for sending that data to the \textit{Control Unit}, so it must include a component handling the subsystem connectivity to the back-end.
-	\newline Its detailed behavior can be described analyzing each sub-component with its responsibilities. Each sub-component can be modeled as a Task, and all Tasks run in parallel in the subsystem on which this part of the application is deployed. All Tasks can be modeled as Synchronous Finite State Machines.
+	This subsystem's main feature is sampling the room's temperature with a given frequency. It's also responsible for sending the collected data to the \textit{Control Unit}, so it must include a component handling the subsystem connectivity to the back-end.
+	\newline Its behavior can be modeled in four Tasks running in parallel, that can all be modeled as Finite State Machines. In particular, the \textit{Temperature Measuring Task}, the \textit{Connection Monitoring Task} and the \textit{LED Task} are modeled to be synchronous, running at a fixed period. The \textit{Communication Task}, on the other hand, is modeled to be asynchronous: it's programmed to act in response to received \textit{MQTT} messages or whenever a measure is ready to be sent, regardless of elapsed time.
 		\subsection{Temperature Measuring Task}
 		The central Task is the one responsible of actually measuring the temperature.
 		\begin{figure}[H]
@@ -38,10 +38,10 @@
 			\caption{FSM modeling the temperature measuring task behavior}
 			\label{img:temp-monitor/temp-measuring-fsm}
 		\end{figure}
-		It is clearly modeled - for clarity - how the state transitions in automatic mode are determined by the temperature values. But in reality, all state transitions are demanded by the \textit{Control Unit} according to the values that it receives from all components, since it is the central Controller for the application.
-		\newline Also, it is clearly modeled to be network-agnostic. Indeed, this sub-component is meant to measure at all times, and it will be a responsibility of the network-related tasks to retrieved the stored data when it's supposed to be shared.
+		It is clearly depicted how the state transitions in automatic mode are determined by the temperature values. But in reality, all state transitions are demanded by the \textit{Control Unit} according to the values that it receives from all components, since it is the central Controller for the application.
+		\newline Also, it is clearly modeled to be network-agnostic. Indeed, this Task is supposed to measure the room's temperature at all times, and relevant data is retrieved and shared by a network-related Task, also responsible of resolving connectivity issues.
 		\subsection{Connection Monitoring Task}
-		This task is the one responsible for monitoring the system connection state. It's supposed to check whether the component is still online, and when it's not, to try and reconnect. It works on two layers: the first one checks whether the system is connected to the \textit{WiFi}, and the higher one checks whether the \textit{MQTT} subscription is still on.
+		This task is the one responsible for monitoring the subsystem connection state. It's supposed to check whether the component is still connected to the \textit{Control Unit}, and when it's not, to try and reconnect. It works on two layers: the first one checks whether the system is online, and the higher one checks whether the \textit{MQTT} subscription is still functioning.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/temp-monitor/connection-monitoring-fsm.png}
@@ -56,7 +56,7 @@
 			\caption{FSM modeling the communication task behavior}
 			\label{img:temp-monitor/communication-fsm}
 		\end{figure}
-		It's here clear how this task too is network agnostic: simply, when there is no connection or no active \textit{MQTT} subscription no messages are received - and the system therefore never goes to the \textit{Receiving} state - and the ones that are sent might be lost.
+		It's here clear how this task too is network agnostic: simply, when there is no connection or no active \textit{MQTT} subscription no messages are received - and the system therefore never goes to the \textit{Receiving} state - and the ones that are supposed to be sent are actually lost.
 		\subsection{LED Task}
 		This task's main responsibility is to represent to the user whether the sub-system is online.
 		\begin{figure}[H]
@@ -65,8 +65,10 @@
 			\caption{FSM modeling the LED task behavior}
 			\label{img:temp-monitor/led-fsm}
 		\end{figure}
-		In this scheme, it's obvious how this Task's state depends directly on the state of the \textit{Connection Monitoring Task}. In particular, the LED is shown as green only when the device is fully connected to the Internet and the \textit{MQTT} subscription is running properly.
-		\paragraph{Note} the sub-system's connection state is kept internally, and is not communicated to the \textit{Control Unit}. This because, architecturally speaking, the rest of the system is not concerned about this specific sub-system's connection state, since it would be simply cut out of the communication network. So, connection state is here only tracked to help the LED Task show the user the correct information, but the rest of the system - if well decoupled - is required to keep running even if the communication went down (or theoretically speaking, also if there were multiple devices tracking the temperature and connected to the same \textit{MQTT} topic and broker).
+		In this scheme, it's obvious how this Task's state depends directly on the state of the \textit{Connection Monitoring Task}. In particular, the LED is shown as green only when the device is connected to the Internet and the \textit{MQTT} subscription is properly established.
+		\subsection{Shared Data}
+		In this subsystem, shared data is used to ensure consistency in the behavior of different Tasks. In particular, it's used to demand state transitions to Tasks that depend on other Tasks' state.
+		\newline To achieve inter-Task communication, all Tasks store a reference to a shared object. Its main feature must be thread-safety: all Tasks can access shared data at any time, also concurrently, so the shared data carrier has to be implemented in such a way to prevent dirty reads, race conditions and deadlocks.
 	\section{Window Controller}
 	This component's main responsibility is to actuate the window opening level, based on the values sent by the \textit{Control Unit} via \textit{Serial Line}. Furthermore, it exposes a small operating dashboard to switch between operative modes (automatic or manual) and to control the window's opening level, if in manual mode. Its behavior can be modeled with a task-based architecture, giving each task a small set of features to handle. Each one of these tasks can be modeled as a \textit{synchronous Finite State Machine}, timed by a central scheduler whose only responsibility is to keep everything temporized.
 		\subsection{Window Controlling Task}
@@ -137,10 +139,10 @@
 		\label{img:temp-monitor/circuit}
 	\end{figure}
 	In this scheme si depicted the detailed circuit for the \textit{Temperature Monitor}, deployed on an \textit{ESP32 System-on-a-Chip} and programmed relying on the \textit{Wiring} framework.
-	\newline The \textit{ESP32} holds enough program memory to host a little Operating System, which means that the programmer can deploy Tasks on both its cores without having to directly schedule them. For this project, \href{https://www.freertos.org/}{\textit{the FreeRTOS Operating System}} was used.
-	\newline Specifically, both network-related tasks are pinned to \textit{Core 0}. This because - using \textit{FreeRTOS} on \textit{ESP32} - the \textit{event Task} is automatically pinned to \textit{Core 0}, and so all WiFi events are dispatched on that core. On the other hand, the \textit{LED Task} and the \textit{Temperature Measuring Task} are left unpinned, delegating to the OS the responsibility to balance load and maximize throughput.
-	\newline For what concerns communication, since the system relies on the \textit{MQTT} protocol, the \href{https://pubsubclient.knolleary.net/}{\textit{PubSubClient library}} was used. This particular library allows the programmer to subscribe to specific topics from a specific broker, without having to deal with protocol-specific low level aspects. The message content is represented in JSON format like it was for the \textit{Window Controller}. In particular, the back-end sends periodically sends this sub-system the requested sample frequency, and in response this component sends back the current temperature measure, together with the date and the time of the measurement, for history-keeping reasons.
-	\newline To synchronize the ESP time with current date and time I relied on the \href{https://www.nist.gov/}{\textit{United States National Institute of Standards and Technology time server}}, as suggested by \href{https://www.programmingelectronics.com/esp32-time-servers/}{\textit{this guide page}}.
+	\newline The \textit{ESP32} holds enough program memory to host a lightweight Operating System, which means that there is no need to implement a scheduler from scratch. For this project, \href{https://www.freertos.org/}{\textit{the FreeRTOS Operating System}} was used, allowing to run Tasks in parallel on both cores of the \textit{ESP32} board.
+	\newline Specifically, both network-related tasks are pinned to \textit{Core 0}. This implementation was chosen because, using \textit{FreeRTOS} on \textit{ESP32}, the \textit{event Task} is automatically pinned to \textit{Core 0}, and so all WiFi events are dispatched on that core. On the other hand, the \textit{LED Task} and the \textit{Temperature Measuring Task} are left unpinned, delegating to the OS the responsibility to balance load, making the usage of hardware resources as efficient as possible.
+	\newline For what concerns communication, since the system relies on the \textit{MQTT} protocol, the \href{https://pubsubclient.knolleary.net/}{\textit{PubSubClient library}} was used. This particular library allows the programmer to subscribe to specific topics from a specific broker, without having to deal with protocol-specific low level aspects. The message content is represented in JSON format. In particular, the back-end periodically sends to this sub-system the requested sample frequency, and in response this component sends back the current temperature measure, together with the date and the time of the measurement, for history-keeping reasons.
+	\newline To synchronize the ESP time with current date and time I relied on the \href{https://www.ntppool.org/en/}{\textit{NTP Pool Project time servers}}, as suggested by \href{https://www.programmingelectronics.com/esp32-time-servers/}{\textit{this guide page}}.
 	\section{Window Controller}
 	\begin{figure}[H]
 		\centering{}
