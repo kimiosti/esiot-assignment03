@@ -1,18 +1,17 @@
 #include <Arduino.h>
+#include "utils/system_state_tracker.h"
 
-// put function declarations here:
-int myFunction(int, int);
+SystemStateTracker *stateTracker;
+
+SemaphoreHandle_t stateTrackerMutex;
 
 void setup() {
   // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  stateTracker = new SystemStateTracker();
+
+  stateTrackerMutex = xSemaphoreCreateMutex();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
 }
