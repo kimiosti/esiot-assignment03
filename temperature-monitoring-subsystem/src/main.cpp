@@ -1,15 +1,23 @@
 #include <Arduino.h>
 #include "utils/system_state_tracker.h"
+#include "task/network_monitoring_task.h"
 #include "task/led_task.h"
 
 #define DEFAULT_STACK_DEPTH 10000
 #define DEFAULT_TASK_PRIORITY 1
 #define DEFAULT_TASK_ARGS NULL
 
+#define NETWORK_TASK_PERIOD 500
 #define LED_TASK_PERIOD 500
 
 SystemStateTracker *stateTracker;
 SemaphoreHandle_t stateTrackerMutex;
+
+WiFiClient *wifiClient;
+PubSubClient *mqttClient;
+
+NetworkMonitoringTask *networkTask;
+TaskHandle_t *networkTaskHandler;
 
 LEDTask *ledTask;
 TaskHandle_t *ledTaskHandler;
@@ -20,13 +28,32 @@ void runTask(void *task) {
 
 void setup() {
   // put your setup code here, to run once:
-
   stateTracker = new SystemStateTracker();
   stateTrackerMutex = xSemaphoreCreateMutex();
 
+  wifiClient = new WiFiClient();
+  mqttClient = new PubSubClient(*wifiClient);
+  networkTask = new NetworkMonitoringTask(
+    NETWORK_TASK_PERIOD,
+    wifiClient,
+    mqttClient,
+    stateTracker,
+    stateTrackerMutex
+  );
+  networkTaskHandler = new TaskHandle_t();
+  xTaskCreatePinnedToCore(
+    runTask,
+    "NetworkMonitoringTask",
+    DEFAULT_STACK_DEPTH,
+    (void*)networkTask,
+    DEFAULT_TASK_PRIORITY,
+    networkTaskHandler,
+    0
+  );
+
   ledTask = new LEDTask(LED_TASK_PERIOD, stateTracker, stateTrackerMutex);
   ledTaskHandler = new TaskHandle_t();
-  xTaskCreate(runTask, "LED Task", DEFAULT_STACK_DEPTH, (void*)ledTask, DEFAULT_TASK_PRIORITY, ledTaskHandler);
+  xTaskCreate(runTask, "LEDTask", DEFAULT_STACK_DEPTH, (void*)ledTask, DEFAULT_TASK_PRIORITY, ledTaskHandler);
 }
 
 void loop() {
