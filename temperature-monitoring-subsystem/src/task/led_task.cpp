@@ -16,11 +16,11 @@ LEDTask::LEDTask(
 
 void LEDTask::run(void *params) {
     for (;;) {
-        long start = millis();
+        unsigned long start = millis();
         this->update();
-        long elapsed = millis() - start;
-        if (period - elapsed > 0) {
-            vTaskDelay((period - elapsed) / portTICK_PERIOD_MS);
+        unsigned long elapsed = millis() - start;
+        if (period > elapsed) {
+           delay(period - elapsed);
         }
     }
 }
