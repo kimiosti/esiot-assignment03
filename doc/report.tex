@@ -29,9 +29,9 @@
 	The system architecture can be analyzed splitting the system in the four main sub-systems highlighted previously.
 	\section{Temperature Monitor}
 	This subsystem's main feature is sampling the room's temperature with a given frequency. It's also responsible for sending the collected data to the \textit{Control Unit}, so it must include a component handling the subsystem connectivity to the back-end.
-	\newline Its behavior can be modeled in four Tasks running in parallel, that can all be modeled as Finite State Machines. In particular, the \textit{Temperature Measuring Task}, the \textit{Connection Monitoring Task} and the \textit{LED Task} are modeled to be synchronous, running at a fixed period. The \textit{Communication Task}, on the other hand, is modeled to be asynchronous: it's programmed to act in response to received \textit{MQTT} messages or whenever a measure is ready to be sent, regardless of elapsed time.
+	\newline Its behavior can be modeled in four Tasks running in parallel, that can all be modeled as Finite State Machines. In particular, all Tasks can be modeled in a synchronous way, running at a fixed period that dictates their steps.
 		\subsection{Temperature Measuring Task}
-		The central Task is the one responsible of actually measuring the temperature.
+		The central Task is the one responsible of actually measuring the temperature. Its main feature is the variable execution period, here depicted with the \textit{freq} parameter. In particular, the frequency is dictated by the \textit{Control Unit} in response to the measured temperature.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/temp-monitor/temp-measuring-fsm.png}
@@ -57,6 +57,7 @@
 			\label{img:temp-monitor/communication-fsm}
 		\end{figure}
 		It's here clear how this task too is network agnostic: simply, when there is no connection or no active \textit{MQTT} subscription no messages are received - and the system therefore never goes to the \textit{Receiving} state - and the ones that are supposed to be sent are actually lost.
+		\newline Additionally, it's noticeable how this Task has at least a part that runs asynchronously: whenever a message is received, regardless of how much time has elapsed since the last one, a response is triggered in this Task. But this is not an issue since the Task is only meant to receive messages in response to the ones it sends: so the message receiving can be considered as a part of the single step of a synchronous Finite State Machine running at the same variable period of the \textit{Temperature Measuring Task}.
 		\subsection{LED Task}
 		This task's main responsibility is to represent to the user whether the sub-system is online.
 		\begin{figure}[H]
