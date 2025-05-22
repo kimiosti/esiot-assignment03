@@ -33,6 +33,7 @@ void CommunicationTask::update() {
 
     if (xSemaphoreTake(this->sharedDataMutex, this->period / portTICK_PERIOD_MS)) {
         TemperatureMeasure *measure = this->stateTracker->getLastMeasure();
+        this->period = this->stateTracker->getcurrentFrequency();
         xSemaphoreGive(this->sharedDataMutex);
 
         String msg;
@@ -50,7 +51,7 @@ void CommunicationTask::update() {
 
 void CommunicationTask::onReceive(char *topic, byte *payload, unsigned int length) {
     if (String(topic).compareTo(String(RECEIVE_TOPIC)) == 0) {
-        unsigned long newPeriod = String((char *)payload).substring(15, 17).toInt();
+        unsigned long newPeriod = String((char *)payload).substring(15, 18).toInt();
 
         if (xSemaphoreTake(this->sharedDataMutex, newPeriod / portTICK_PERIOD_MS)) {
             this->stateTracker->setFrequency(newPeriod);
