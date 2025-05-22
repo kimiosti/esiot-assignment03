@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "utils/system_state_tracker.h"
 #include "task/network_monitoring_task.h"
+#include "task/communication_task.h"
 #include "task/led_task.h"
 
 #define DEFAULT_STACK_DEPTH 10000
@@ -19,11 +20,18 @@ PubSubClient *mqttClient;
 NetworkMonitoringTask *networkTask;
 TaskHandle_t *networkTaskHandler;
 
+CommunicationTask *communicationTask;
+TaskHandle_t communicationTaskHandler;
+
 LEDTask *ledTask;
 TaskHandle_t *ledTaskHandler;
 
 void runTask(void *task) {
   ((Task *)task)->run(DEFAULT_TASK_ARGS);
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  communicationTask->onReceive(topic, payload, length);
 }
 
 void setup() {
@@ -49,6 +57,12 @@ void setup() {
     DEFAULT_TASK_PRIORITY,
     networkTaskHandler,
     0
+  );
+
+  mqttClient->setCallback(callback);
+  communicationTask = new CommunicationTask(stateTracker, stateTrackerMutex, mqttClient);
+  xTaskCreatePinnedToCore(
+    runTask, "CommTask", DEFAULT_STACK_DEPTH, (void*)communicationTask, DEFAULT_TASK_PRIORITY, &communicationTaskHandler, 0
   );
 
   ledTask = new LEDTask(LED_TASK_PERIOD, stateTracker, stateTrackerMutex);
