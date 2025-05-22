@@ -9,7 +9,7 @@ SystemStateTracker::SystemStateTracker() {
     this->subscribed = false;
 }
 
-int SystemStateTracker::getcurrentFrequency() {
+unsigned long SystemStateTracker::getcurrentFrequency() {
     return this->frequency;
 }
 
@@ -25,7 +25,7 @@ bool SystemStateTracker::isSubscribed() {
     return this->subscribed;
 }
 
-void SystemStateTracker::setFrequency(int frequency) {
+void SystemStateTracker::setFrequency(unsigned long frequency) {
     this->frequency = frequency;
 }
 

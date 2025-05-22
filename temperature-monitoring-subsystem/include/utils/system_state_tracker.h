@@ -5,18 +5,18 @@
 
 class SystemStateTracker {
     private:
-        int frequency;
+        unsigned long frequency;
         TemperatureMeasure *temperatureMeasure;
         bool online;
         bool subscribed;
 
     public:
         SystemStateTracker();
-        int getcurrentFrequency();
+        unsigned long getcurrentFrequency();
         TemperatureMeasure* getLastMeasure();
         bool isOnline();
         bool isSubscribed();
-        void setFrequency(int frequency);
+        void setFrequency(unsigned long frequency);
         void recordMeasure(TemperatureMeasure *measure);
         void setOnlineStatus(bool online);
         void setSubscriptionStatus(bool subscription);
