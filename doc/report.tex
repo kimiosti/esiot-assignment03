@@ -185,6 +185,7 @@
 			\caption{Scheme of the database table}
 			\label{img:control-unit/db-scheme}
 		\end{figure}
+		Since the system is interfaced to a database hosted in \textit{mySQL}, which by default runs in \textit{autocommit mode}, all transactions are guaranteed to be atomic, as if they were included in a commit sequence (\href{https://dev.mysql.com/doc/refman/8.4/en/commit.html}{\textit{as stated in this mySQL guide page}}). Therefore, the \textit{Control Unit} can delegate concurrency-related issues to the database Server.
 		\subsection{Serial Agent}
 		This component actively communicates with the \textit{Window Controller}. It's implemented in Java, relying on the \href{https://github.com/java-native/jssc}{\textit{JSSC library}} for Serial Line Communication. It's responsible of gathering the in-place control unit input, communicating it to the \textit{Central Controller} in order to reply effectively to the \textit{Window Controller} to actuate the - eventually - mutated state of the system.
 		\subsection{MQTT Agent}
