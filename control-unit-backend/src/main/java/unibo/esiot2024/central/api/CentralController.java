@@ -1,5 +1,6 @@
 package unibo.esiot2024.central.api;
 
+import java.util.List;
 import java.util.Optional;
 
 import unibo.esiot2024.utils.SystemInfo;
@@ -60,4 +61,10 @@ public interface CentralController {
      * or an empty {@link Optional} if no values have been recorded in the last minute.
      */
     Optional<Float> getMinTemperature();
+
+    /**
+     * Getter for all the measurements in the last minute.
+     * @return a {@link List} containing all measurements recorded in the last minute.
+     */
+    List<TemperatureMeasure> getLastMeasures();
 }
