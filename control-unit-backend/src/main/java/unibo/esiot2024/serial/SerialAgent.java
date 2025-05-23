@@ -31,12 +31,14 @@ public final class SerialAgent implements SerialPortEventListener {
     private static final int STOP_BITS = SerialPort.STOPBITS_1;
     private static final int PARITY = SerialPort.PARITY_NONE;
     private static final int CONTROL_MODE_MASK = SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT;
+    private static final int OPENING_TOLERANCE = 5;
     private static final String LOG_MESSAGE = "Serial line error: ";
 
     private final CentralController controller;
     private final SerialPort port;
     private final SerialMessHandler messageHandler;
     private String lastMess;
+    private int lastOpeningReceived;
 
     /**
      * Instantiates a serial agent on the only port attached, or the fallback if more than one port is detected.
@@ -49,6 +51,7 @@ public final class SerialAgent implements SerialPortEventListener {
         this.messageHandler = new SerialMessHandlerImpl();
         this.port = new SerialPort(portName);
         this.openPort();
+        this.lastOpeningReceived = 0;
     }
 
     @Override
@@ -82,7 +85,10 @@ public final class SerialAgent implements SerialPortEventListener {
             if (readValues.modeSwitchRequested()) {
                 this.controller.switchOperativeMode();
             }
-            this.controller.setOpeningLevel(readValues.openingPercentage());
+            if (Math.abs(readValues.openingPercentage() - this.lastOpeningReceived) > OPENING_TOLERANCE) {
+                this.lastOpeningReceived = readValues.openingPercentage();
+                this.controller.setOpeningLevel(readValues.openingPercentage());
+            }
         });
 
         final var dbRead = this.controller.getCurrentValues();
