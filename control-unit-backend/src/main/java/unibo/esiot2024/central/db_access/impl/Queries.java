@@ -62,7 +62,7 @@ public enum Queries {
         """
                 SELECT MAX(temperature) AS maxTemp
                 FROM measurements
-                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), m.measureTime)) < 60
+                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
                 """
     ),
 
@@ -73,7 +73,18 @@ public enum Queries {
         """
                 SELECT MIN(temperature) AS minTemp
                 FROM measurements
-                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), m.measureTime)) < 60
+                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
+                """
+    ),
+
+    /**
+     * Query to get all the measurements recorded in the last minute
+     */
+    LAST_MEASURES_QUERY(
+        """
+                SELECT *
+                FROM measurements
+                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
                 """
     );
 
