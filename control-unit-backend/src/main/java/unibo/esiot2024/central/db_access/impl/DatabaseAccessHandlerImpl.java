@@ -49,7 +49,7 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     }
 
     @Override
-    public synchronized void recordNewMeasure(final SystemInfo entry) {
+    public void recordNewMeasure(final SystemInfo entry) {
                 try (var statement = Queries.SETTER_QUERY.toStatement(
                     this.connection,
                     entry.measure().temperature(),
@@ -65,7 +65,7 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     }
 
     @Override
-    public synchronized Optional<SystemInfo> getCurrentValues() {
+    public Optional<SystemInfo> getCurrentValues() {
         try (var statement = Queries.GETTER_QUERY.toStatement(this.connection)) {
             final var resSet = statement.executeQuery();
 
@@ -77,7 +77,7 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     }
 
     @Override
-    public synchronized Optional<Float> getAverage() {
+    public Optional<Float> getAverage() {
         try (var statement = Queries.AVG_QUERY.toStatement(this.connection)) {
             final var resSet = statement.executeQuery();
 
@@ -88,7 +88,7 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     }
 
     @Override
-    public synchronized Optional<Float> getMax() {
+    public Optional<Float> getMax() {
         try (var statement = Queries.MAX_QUERY.toStatement(this.connection)) {
             final var resSet = statement.executeQuery();
 
@@ -99,7 +99,7 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     }
 
     @Override
-    public synchronized Optional<Float> getMin() {
+    public Optional<Float> getMin() {
         try (var statement = Queries.MIN_QUERY.toStatement(this.connection)) {
             final var resSet = statement.executeQuery();
 
@@ -110,7 +110,7 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
     }
 
     @Override
-    public synchronized List<TemperatureMeasure> getLastMeasures() {
+    public List<TemperatureMeasure> getLastMeasures() {
         try (var statement = Queries.LAST_MEASURES_QUERY.toStatement(this.connection)) {
             final var resSet = statement.executeQuery();
 
