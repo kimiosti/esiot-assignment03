@@ -1,8 +1,10 @@
 package unibo.esiot2024.central.db_access.api;
 
+import java.util.List;
 import java.util.Optional;
 
 import unibo.esiot2024.utils.SystemInfo;
+import unibo.esiot2024.utils.TemperatureMeasure;
 
 /**
  * Interface for the system database access handler.
@@ -42,4 +44,11 @@ public interface DatabaseAccessHandler {
      * or an empty {@link Optional} if no value has been recorded in the last minute.
      */
     Optional<Float> getMin();
+
+    /**
+     * Returns a list containing all the measures recorded in the last minute.
+     * @return a {@link List} of {@link TemperatureMeasure} containing all the measurements recorded in
+     * the last minute, or an empty {@link List} if no measure was found in the last minute.
+     */
+    List<TemperatureMeasure> getLastMeasures();
 }

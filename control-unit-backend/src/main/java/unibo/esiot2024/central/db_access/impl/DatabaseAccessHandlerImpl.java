@@ -3,6 +3,8 @@ package unibo.esiot2024.central.db_access.impl;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -104,6 +106,25 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
             return resSet.next() ? Optional.of(resSet.getFloat("minTemp")) : Optional.empty();
         } catch (final SQLException e) {
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public synchronized List<TemperatureMeasure> getLastMeasures() {
+        try (var statement = Queries.LAST_MEASURES_QUERY.toStatement(this.connection)) {
+            final var resSet = statement.executeQuery();
+
+            final var res = new ArrayList<TemperatureMeasure>();
+            while(resSet.next()) {
+                res.add(new TemperatureMeasure(
+                    resSet.getFloat("temperature"),
+                    resSet.getDate("measureDate"),
+                    resSet.getTime("measureTime")
+                ));
+            }
+            return res;
+        } catch (final SQLException e) {
+            return List.of();
         }
     }
 
