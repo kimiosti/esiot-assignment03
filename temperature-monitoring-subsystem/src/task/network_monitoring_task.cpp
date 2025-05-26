@@ -1,9 +1,9 @@
 #include <time.h>
 #include "task/network_monitoring_task.h"
 
-#define SSID "Kimbo502"
-#define PASSWORD "password"
-#define MQTT_BROKER "192.168.50.37"
+#define SSID "wifi-ssid"
+#define PASSWORD "wifi-pass"
+#define MQTT_BROKER "broker-address"
 #define MQTT_BROKER_PORT 1883
 #define RECEIVE_TOPIC "unibo/esiot2024/temp-monitor/backend"
 
