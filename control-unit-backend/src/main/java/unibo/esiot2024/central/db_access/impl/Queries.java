@@ -51,7 +51,8 @@ public enum Queries {
         """
                 SELECT AVG(temperature) AS avgTemp
                 FROM measurements
-                WHERE TIME_TO_SEC(TIMEDIFF(CURIME(), measureTime)) < 60
+                WHERE CURDATE() = measureDate
+                AND TIME_TO_SEC(TIMEDIFF(CURIME(), measureTime)) < 60
                 """
     ),
 
@@ -62,7 +63,8 @@ public enum Queries {
         """
                 SELECT MAX(temperature) AS maxTemp
                 FROM measurements
-                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
+                WHERE CURDATE() = measureDate
+                AND TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
                 """
     ),
 
@@ -73,7 +75,8 @@ public enum Queries {
         """
                 SELECT MIN(temperature) AS minTemp
                 FROM measurements
-                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
+                WHERE CURDATE() = measureDate
+                AND TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
                 """
     ),
 
@@ -84,7 +87,8 @@ public enum Queries {
         """
                 SELECT *
                 FROM measurements
-                WHERE TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
+                WHERE CURDATE() = measureDate
+                AND TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
                 """
     );
 
