@@ -34,17 +34,17 @@
 	This subsystem's main feature is sampling the room's temperature with a given frequency. It's also responsible for sending the collected data to the \textit{Control Unit}, so it must include a component handling the subsystem connectivity to the back-end.
 	\newline Its behavior can be modeled in four Tasks running in parallel, that can all be modeled as Finite State Machines. In particular, all Tasks can be modeled in a synchronous way, running at a fixed period that dictates their steps.
 		\subsection{Temperature Measuring Task}
-		The central Task is the one responsible of actually measuring the temperature. Its main feature is the variable execution period, here depicted with the \textit{freq} parameter. In particular, the frequency is dictated by the \textit{Control Unit} in response to the measured temperature.
+		The central Task is the one responsible of actually measuring the temperature. Its main feature is the variable execution period, here depicted with the \textit{freq} parameter. In particular, it is dictated by the \textit{Control Unit} in response to the measured temperature.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/temp-monitor/temp-measuring-fsm.png}
 			\caption{FSM modeling the temperature measuring task behavior}
 			\label{img:temp-monitor/temp-measuring-fsm}
 		\end{figure}
-		It is clearly depicted how the state transitions in automatic mode are determined by the temperature values. But in reality, all state transitions are demanded by the \textit{Control Unit} according to the values that it receives from all components, since it is the central Controller for the application.
-		\newline Also, it is clearly modeled to be network-agnostic. Indeed, this Task is supposed to measure the room's temperature at all times, and relevant data is retrieved and shared by a network-related Task, also responsible of resolving connectivity issues.
+		It is clearly depicted how state transitions in automatic mode are determined by the last measured temperature value. But in reality, all state transitions are demanded by the \textit{Control Unit}, which ensures consistency handling all inputs from all sub-components.
+		\newline Also, it is clearly modeled to be network-agnostic. Indeed, this Task is supposed to measure the room's temperature at all times, and data sharing is delegated to a different Task.
 		\subsection{Connection Monitoring Task}
-		This task is the one responsible for monitoring the subsystem connection state. It's supposed to check whether the component is still connected to the \textit{Control Unit}, and when it's not, to try and reconnect. It works on two layers: the first one checks whether the system is online, and the higher one checks whether the \textit{MQTT} subscription is still functioning.
+		This Task is the one responsible of checking whether the component is still connected to the \textit{Control Unit}, and when it's not, to try and reconnect. It works on two layers: the first one checks whether the system is online, and another one, when connected to the Internet, checks whether the \textit{MQTT} subscription is properly established.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/temp-monitor/connection-monitoring-fsm.png}
@@ -52,7 +52,7 @@
 			\label{img:temp-monitor/connection-monitoring-fsm}
 		\end{figure}
 		\subsection{Communication Task}
-		This task is responsible of communicating with the \textit{Control Unit} via the \textit{MQTT} connection set up by the \textit{Connection Monitoring Task}. It ensures that data is properly collected, assembled to form a message and sent to the \textit{Control Unit}. On the other hand, it's also responsible of receiving the response messages published by the \textit{Control Unit}, which can dictate the \textit{Temperature Measuring Task} state, and consequently its sampling frequency.
+		This Task is responsible of communicating with the \textit{Control Unit} exploiting the \textit{MQTT} connection set up by the \textit{Connection Monitoring Task}. It ensures that data is properly collected, assembled to form a message and sent to the \textit{Control Unit}. On the other hand, it's also responsible of receiving the response messages published by the \textit{Control Unit}, which dictates the \textit{Temperature Measuring Task} state, and consequently its sampling frequency.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/temp-monitor/communication-fsm.png}
@@ -62,7 +62,7 @@
 		It's here clear how this task too is network agnostic: simply, when there is no connection or no active \textit{MQTT} subscription no messages are received - and the system therefore never goes to the \textit{Receiving} state - and the ones that are supposed to be sent are actually lost.
 		\newline Additionally, it's noticeable how this Task has at least a part that runs asynchronously: whenever a message is received, regardless of how much time has elapsed since the last one, a response is triggered in this Task. But this is not an issue since the Task is only meant to receive messages in response to the ones it sends: so the message receiving can be considered as a part of the single step of a synchronous Finite State Machine running at the same variable period of the \textit{Temperature Measuring Task}.
 		\subsection{LED Task}
-		This task's main responsibility is to represent to the user whether the sub-system is online.
+		This Task's main responsibility is to represent to the operator whether the sub-system is online.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/temp-monitor/led-fsm.png}
@@ -71,39 +71,39 @@
 		\end{figure}
 		In this scheme, it's obvious how this Task's state depends directly on the state of the \textit{Connection Monitoring Task}. In particular, the LED is shown as green only when the device is connected to the Internet and the \textit{MQTT} subscription is properly established.
 		\subsection{Shared Data}
-		In this subsystem, shared data is used to ensure consistency in the behavior of different Tasks. In particular, it's used to demand state transitions to Tasks that depend on other Tasks' state.
+		In this sub-system, shared data is used to ensure consistency in the behavior of different Tasks. In particular, it's used to demand state transitions to Tasks that depend on other Tasks' state.
 		\newline To achieve inter-Task communication, all Tasks store a reference to a shared object. Its main feature must be thread-safety: all Tasks can access shared data at any time, also concurrently, so the shared data carrier has to be implemented in such a way to prevent dirty reads, race conditions and deadlocks.
 	\section{Window Controller}
-	This component's main responsibility is to actuate the window opening level, based on the values sent by the \textit{Control Unit} via \textit{Serial Line}. Furthermore, it exposes a small operating dashboard to switch between operative modes (automatic or manual) and to control the window's opening level, if in manual mode. Its behavior can be modeled with a task-based architecture, giving each task a small set of features to handle. Each one of these tasks can be modeled as a \textit{synchronous Finite State Machine}, timed by a central scheduler whose only responsibility is to keep everything temporized.
+	This component's main responsibility is to actuate the window opening level, based on the values sent by the \textit{Control Unit} via \textit{Serial Line}. Furthermore, it exposes a small operating dashboard to switch between operative modes (automatic or manual) and to control the window's opening level, if in manual mode. Its behavior can be modeled with a task-based architecture, giving each task a small set of features to handle. Each one of these tasks can be modeled as a synchronous Finite State Machine, timed by a central scheduler whose only responsibility is to keep everything running at the right pace.
 		\subsection{Window Controlling Task}
-		This Task is the one actually responsible of actuating the window opening level. It has a period of 200ms and its only job is to set the window opening percentage as demanded by the \textit{Control Unit}, regardless of the overall system state.
+		This Task is the one actually responsible of actuating the window opening level. Its only job is to set the window opening percentage as demanded by the \textit{Control Unit}, regardless of the overall system state.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/window-controlling-fsm.png}
 			\caption{FSM modeling the window controlling task behavior}
 			\label{img:window-controller/window-controlling-fsm}
 		\end{figure}
-		It's obvious in this representation how this \textit{Finite State Machine} actually only has one state, and repeatedly sets the window's opening level based on the system's demands.
+		It's obvious in this representation how this Finite State Machine actually only has one state, and repeatedly sets the window's opening level based on the system's demands.
 		\subsection{Operator Input Task}
-		This Task is responsible of collecting user input, and of communicating it to the \textit{Control Unit} to modify the entire system's state accordingly. It has a period of 100ms: it is a time short enough to never lose button pressing events, but long enough to avoid \textit{bouncing} side effects when pressing the button, which might lead to unpredictable behavior.
+		This Task is responsible of collecting user input. Its main concern is the choice of the period: it must be long enough to prevent faulty reads depending especially on the button's bouncing effects, but it also should be short enough to avoid losing operator inputs.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/operator-input-fsm.png}
 			\caption{FSM modeling the operator input task behavior}
 			\label{img:window-controller/operator-input-fsm}
 		\end{figure}
-		In this scheme it's underlined how this tasks accepts operator input via the potentiometer only in manual mode. For better consistency though, data is here not directly sent to the \textit{Window Controlling Task}, but rather a decoupling level is inserted between the two, centralizing state handling responsibilities in the \textit{Control Unit}.
+		In this scheme it's underlined for clarity how operator input via the potentiometer is only accepted in \textit{Manual} mode. For better consistency though, data isn't directly sent to the \textit{Window Controlling Task}, but rather a decoupling level is inserted between the two Tasks, sending all data to the \textit{Control Unit}, where state handling responsibilities are centralized.
 		\subsection{Operator Output Task}
-		This task is responsible of showing the operator some information about the system's current state. Obviously, for the reasons described above, the system's state is described as received from the \textit{Control Unit}, delegating it all data consistency issues. It has a period of 200ms.
+		This task is responsible of showing the operator some information about the system's current state. Obviously, for the reasons described above, the system's state is described as received from the \textit{Control Unit}, delegating it all data consistency issues.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/operator-output-fsm.png}
 			\caption{FSM modeling the Operator Output Task}
 			\label{img:window-controller/operator-output-fsm}
 		\end{figure}
-		In this scheme, it's depicted how this task is showing different information according to the state of the system. On the other hand, state transitions are not handled in any way by this task, and the \textit{modeSwitch} depends on some input received by the \textit{Control Unit}.
+		In this scheme, it's depicted how this Task is showing different information according to the state of the system. On the other hand, state transitions are not handled in any way by this Task, and the \textit{modeSwitch} depends on some input received by the \textit{Control Unit}.
 		\subsection{Communication Task}
-		This task is responsible of communicating via the \textit{Serial Line} with the \textit{Control Unit}. It's a core feature of this sub-system, since correct communication ensures data (and more importantly behavior) consistency when translating computation into actuation. It has a period of 200ms.
+		This Task is responsible of communicating via the \textit{Serial Line} with the \textit{Control Unit}. It's a core feature of this sub-system, since correct communication ensures data (and more importantly behavior) consistency when translating computation into actuation.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/communication-fsm.png}
@@ -112,7 +112,7 @@
 		\end{figure}
 		Each period this Task (which is clearly depicted as state-agnostic) sends a message containing this sub-system's demands for the \textit{Control Unit} - in particular whether the mode was switched and the last input opening level - and checks for a response's availability. Whenever an incoming message is completely received, it is analyzed by this Task, which stores the current state of the system as demanded by the \textit{Control Unit}.
 		\subsection{Shared Data}
-		In this sub-system, shared data between Tasks is crucial for behavior consistency. For this purpose, two objects are exploited: a \textit{Dirty State Tracker} which saves the current system input requests, and a \textit{State Tracker} which saves the last \textit{Control Unit} demands, considered to be the only source of valid data in the system.
+		In this sub-system, shared data between Tasks is crucial for behavior consistency. For this purpose, two objects are exploited: a \textit{Dirty State Tracker} which saves the current sub-system input requests, and a \textit{State Tracker} which saves the last \textit{Control Unit} demands, considered to be the only source of valid data in the system.
 		\begin{figure}[H]
 			\centering{}
 			\includegraphics[scale=0.5]{img/window-controller/shared-data.png}
@@ -121,9 +121,10 @@
 		\end{figure}
 		The two state tracking objects have to be \textit{Singletons}, since they store the only valid sub-system state.
 	\section{Operator Dashboard}
-	The \textit{Operator Dashboard} serves as a remote user interface to control the system. In particular it offers a graphical representation of the system's current state - which includes a graph of temperature history, the current average, maximum and minimum temperature values in the last period of time, the system operating mode and the window opening level. In addition to this, it allows the operator to switch between automatic and manual modes, as well as a button to restore the system after solving an issue which caused an alarm. It's connected to the \textit{Control Unit} via \textit{HTTP}.
+	The \textit{Operator Dashboard} is implemented as a very simple web-based application. It consists of just one page, with an area where the measurement chart is shown (together with all related statistics) and another area where buttons can be used to input some actions to the system.
+	\newline It communicates with the \textit{Control Unit} via \textit{HTTP}, and it runs some client-side computation on two layers. The first one simply consists of all the \textit{HTTP requests} that happen when the user submits some input, while the second one (with more of an \textit{AJAX}-oriented and more modern approach to web applications) allows the client to periodically retrieve data in the background to keep the chart updated with all the most recent measures, without requiring user operations.
 	\section{Control Unit}
-	This sub-system is the core of the application. It exchanges data with all other sub-systems, and ensures data consistency storing internally all relevant values. Its main responsibility is to bridge between protocols to coordinate all system components, and to actuate the system's behavior on the real world.
+	This sub-system is the core of the application. It exchanges data with all other sub-systems, and ensures data consistency storing internally all relevant values. Its main responsibility is to bridge between protocols to coordinate all system components' behavior, keeping it consistent.
 	\newline This sub-system itself is made out of various components.
 	\begin{figure}[H]
 		\centering{}
@@ -131,8 +132,7 @@
 		\caption{UML class diagram showing the architecture scheme for the Control Unit sub-components}
 		\label{img:control-unit/architecture}
 	\end{figure}
-	In this scheme, the \textit{CentralController} is the one responsible of ensuring proper data consistency, and it cooperates with all the other sub-components to properly communicate with each sub-system.
-	\newline The main concern implementing this sub-system is to ensure that data is properly stored and can be safely accessed, preventing race conditions and other concurrency issues.
+	In this scheme, the \textit{CentralController} is the one responsible of ensuring proper data consistency, and it cooperates with all the other sub-components to properly communicate with all other sub-systems. The main concern when implementing this sub-system is to ensure that data is properly stored and can be safely accessed, preventing race conditions and other concurrency issues.
 	
 	\chapter{Implementing Solutions}
 	\section{Temperature Monitor}
