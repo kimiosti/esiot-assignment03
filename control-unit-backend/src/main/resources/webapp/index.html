@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Smart Room - Dashboard</title>
+        
+        <link rel="stylesheet" href="style/style.css" />
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="scripts/index.js"></script>
+    </head>
+
+    <body>
+        <header>
+            <h1>Smart Room Controller Dashboard</h1>
+        </header>
+        <section><canvas id="chart"></canvas></section><section>
+            <ul>
+                <li><span>Average temperature: </span><span id="avgMeasure"></span></li>
+                <li><span>Max temperature: </span><span id="maxMeasure"></span></li>
+                <li><span>Min temperature: </span><span id="minMeasure"></span></li>
+                <li><span>Current state: </span><span id="curState"></span></li>
+                <li><span>Window Opening: </span><span id="openingLevel"></span></li>
+            </ul>
+        </section><section>
+            <ul>
+                <li><button id="modeSwitch">Toggle user mode</button></li><li><button id="resetState">Reset critic state</button></li>
+            </ul>
+        </section><section>
+            <form action="api/action/setOpening" method="post">
+                <label for="openingInput">Opening level: </label><div>
+                    <input type="number" max="100" min="0" id="openingInput" name="OpeningInput"></div>
+                <input type="submit" value="Submit"/>
+            </form>
+        </section>
+    </body>
+</html>
