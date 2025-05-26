@@ -78,7 +78,7 @@ public enum Queries {
     ),
 
     /**
-     * Query to get all the measurements recorded in the last minute
+     * Query to get all the measurements recorded in the last minute.
      */
     LAST_MEASURES_QUERY(
         """

@@ -115,7 +115,7 @@ public final class DatabaseAccessHandlerImpl implements DatabaseAccessHandler {
             final var resSet = statement.executeQuery();
 
             final var res = new ArrayList<TemperatureMeasure>();
-            while(resSet.next()) {
+            while (resSet.next()) {
                 res.add(new TemperatureMeasure(
                     resSet.getFloat("temperature"),
                     resSet.getDate("measureDate"),

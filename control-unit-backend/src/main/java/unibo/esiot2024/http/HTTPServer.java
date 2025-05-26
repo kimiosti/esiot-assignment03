@@ -22,19 +22,19 @@ import unibo.esiot2024.central.api.CentralController;
 )
  public final class HTTPServer extends AbstractVerticle {
 
-    private final String HOME = "/index.html";
-    private final String HOME_STYLE = "/style/style.css";
-    private final String HOME_SCRIPT = "/scripts/index.js";
-    private final String CONTENT_TYPE_LABEL = "content-type";
-    private final String HTML_CONTENT = "text/html";
-    private final String CONTENT_FOLDER = "webapp";
-    private final String OPENING_INPUT = "/api/action/setOpening";
-    private final String TOGGLE_MODE = "/api/action/toggleMode";
-    private final String RESTORE = "/api/action/restoreState";
-    private final String GET_DATA = "/api/data";
-    private final float DEFAULT_TEMP = 0f;
-    private final int DEFAULT_OPENING = 0;
-    private final String DEFAULT_STATE = "unknown";
+    private static final String HOME = "/index.html";
+    private static final String HOME_STYLE = "/style/style.css";
+    private static final String HOME_SCRIPT = "/scripts/index.js";
+    private static final String CONTENT_TYPE_LABEL = "content-type";
+    private static final String HTML_CONTENT = "text/html";
+    private static final String CONTENT_FOLDER = "webapp";
+    private static final String OPENING_INPUT = "/api/action/setOpening";
+    private static final String TOGGLE_MODE = "/api/action/toggleMode";
+    private static final String RESTORE = "/api/action/restoreState";
+    private static final String GET_DATA = "/api/data";
+    private static final float DEFAULT_TEMP = 0f;
+    private static final int DEFAULT_OPENING = 0;
+    private static final String DEFAULT_STATE = "unknown";
 
 
     private final CentralController controller;
@@ -61,7 +61,7 @@ import unibo.esiot2024.central.api.CentralController;
             final var content = routingContext.getBodyAsString().split("=");
 
             if (content.length == 2) {
-                this.controller.setOpeningLevel(Integer.valueOf(content[1]));
+                this.controller.setOpeningLevel(Integer.parseInt(content[1]));
             }
 
             routingContext.redirect(HOME);
