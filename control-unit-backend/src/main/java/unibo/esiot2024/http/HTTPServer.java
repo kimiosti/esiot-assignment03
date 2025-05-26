@@ -1,6 +1,8 @@
 package unibo.esiot2024.http;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.vertx.core.AbstractVerticle;
@@ -35,7 +37,7 @@ import unibo.esiot2024.central.api.CentralController;
     private static final float DEFAULT_TEMP = 0f;
     private static final int DEFAULT_OPENING = 0;
     private static final String DEFAULT_STATE = "unknown";
-
+    private static final int SERVER_PORT = 8080;
 
     private final CentralController controller;
 
@@ -102,6 +104,16 @@ import unibo.esiot2024.central.api.CentralController;
                     .put("times", times)
             );
         });
+
+        vertx.createHttpServer()
+            .requestHandler(router)
+            .listen(SERVER_PORT)
+            .onSuccess(server -> {
+                Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(
+                    Level.INFO,
+                    "Server open on port " + server.actualPort()
+                );
+            });
     }
 
     private void setGetRoute(final Router router, final String route, final boolean isHTML) {
