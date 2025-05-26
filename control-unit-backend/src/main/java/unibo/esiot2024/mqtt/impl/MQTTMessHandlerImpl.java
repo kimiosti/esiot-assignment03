@@ -2,6 +2,8 @@ package unibo.esiot2024.mqtt.impl;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +16,6 @@ import unibo.esiot2024.utils.TemperatureMeasure;
 public final class MQTTMessHandlerImpl implements MQTTMessHandler {
 
     private static final int TEMP_INDEX = 1;
-    private static final int DATE_INDEX = 3;
-    private static final int TIME_INDEX = 5;
     private static final String SPLIT_REGEX = "[{}, ]";
     private static final String PREFIX = "{ ";
     private static final String POSTFIX = " }";
@@ -27,8 +27,8 @@ public final class MQTTMessHandlerImpl implements MQTTMessHandler {
         words.removeIf(String::isEmpty);
         return new TemperatureMeasure(
             Float.parseFloat(words.get(TEMP_INDEX)),
-            Date.valueOf(words.get(DATE_INDEX)),
-            Time.valueOf(words.get(TIME_INDEX))
+            Date.valueOf(LocalDate.now()),
+            Time.valueOf(LocalTime.now())
         );
     }
 
