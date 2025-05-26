@@ -28,8 +28,8 @@ public final class CentralControllerImpl implements CentralController {
 
     private final DatabaseAccessHandler handler;
     private long lastModeSwitchTS;
-    private long tooHotStateElapsed;
-    private long tooHotLastTS;
+    private long tooHotElapsed;
+    private long tooHotLast;
 
     /**
      * Initialises an instance for the central controller of the application.
@@ -132,19 +132,27 @@ public final class CentralControllerImpl implements CentralController {
             return SystemState.MANUAL;
         } else {
             if (temperature < T1) {
-                this.tooHotStateElapsed = 0;
                 return SystemState.NORMAL;
-            } else if (temperature <= T2) {
-                this.tooHotStateElapsed = 0;
-                return SystemState.HOT;
+            } else if (temperature > T2) {
+                if (curValues.isEmpty()) {
+                    this.tooHotElapsed = 0;
+                    this.tooHotLast = System.currentTimeMillis();
+                    return SystemState.TOO_HOT;
+                } else {
+                    if (curValues.get().state().equals(SystemState.ALARM)) {
+                        return SystemState.ALARM;
+                    } else if (curValues.get().state().equals(SystemState.TOO_HOT)) {
+                        this.tooHotElapsed += System.currentTimeMillis() - this.tooHotLast;
+                        this.tooHotLast = System.currentTimeMillis();
+                        return this.tooHotElapsed > TOO_HOT_TIME_THRESHOLD ? SystemState.ALARM : SystemState.TOO_HOT;
+                    } else {
+                        this.tooHotElapsed = 0;
+                        this.tooHotLast = System.currentTimeMillis();
+                        return SystemState.TOO_HOT;
+                    }
+                }
             } else {
-                final var curTime = System.currentTimeMillis();
-                this.tooHotStateElapsed = this.tooHotStateElapsed == 0
-                    ? System.currentTimeMillis() - curTime
-                    : System.currentTimeMillis() - this.tooHotLastTS;
-                this.tooHotLastTS = System.currentTimeMillis();
-
-                return this.tooHotStateElapsed > TOO_HOT_TIME_THRESHOLD ? SystemState.ALARM : SystemState.TOO_HOT;
+                return SystemState.HOT;
             }
         }
     }
