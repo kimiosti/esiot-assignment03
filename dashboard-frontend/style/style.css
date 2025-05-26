@@ -47,7 +47,7 @@ body > section > ul > li > button, body > section > form > input[type="submit"] 
 }
 
 body > section > ul > li > button:hover, body > section > form > input[type="submit"]:hover {
-    background-color: #90beab;
+    background-color: #96caf1;
     cursor: pointer;
 }
 
