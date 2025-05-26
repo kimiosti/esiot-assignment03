@@ -45,7 +45,11 @@ public final class CentralControllerImpl implements CentralController {
     @Override
     public void switchOperativeMode() {
         final var curValues = this.getCurrentValues();
-        if (curValues.isPresent() && System.currentTimeMillis() - this.lastModeSwitchTS > MODE_SWITCH_THRESHOLD) {
+        if (
+            curValues.isPresent()
+            && System.currentTimeMillis() - this.lastModeSwitchTS > MODE_SWITCH_THRESHOLD
+            && !curValues.get().state().equals(SystemState.ALARM)
+        ) {
             this.lastModeSwitchTS = System.currentTimeMillis();
             this.recordValues(
                 curValues.get().measure().temperature(),
@@ -130,6 +134,8 @@ public final class CentralControllerImpl implements CentralController {
     private SystemState getStateByTemperature(final float temperature, final Optional<SystemInfo> curValues) {
         if (curValues.isPresent() && curValues.get().state().equals(SystemState.MANUAL)) {
             return SystemState.MANUAL;
+        } else if (curValues.isPresent() && curValues.get().state().equals(SystemState.ALARM)) {
+            return SystemState.ALARM;
         } else {
             if (temperature < T1) {
                 return SystemState.NORMAL;
@@ -139,9 +145,7 @@ public final class CentralControllerImpl implements CentralController {
                     this.tooHotLast = System.currentTimeMillis();
                     return SystemState.TOO_HOT;
                 } else {
-                    if (curValues.get().state().equals(SystemState.ALARM)) {
-                        return SystemState.ALARM;
-                    } else if (curValues.get().state().equals(SystemState.TOO_HOT)) {
+                    if (curValues.get().state().equals(SystemState.TOO_HOT)) {
                         this.tooHotElapsed += System.currentTimeMillis() - this.tooHotLast;
                         this.tooHotLast = System.currentTimeMillis();
                         return this.tooHotElapsed > TOO_HOT_TIME_THRESHOLD ? SystemState.ALARM : SystemState.TOO_HOT;
