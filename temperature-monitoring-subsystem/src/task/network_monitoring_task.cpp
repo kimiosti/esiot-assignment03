@@ -3,7 +3,7 @@
 
 #define SSID "wifi-ssid"
 #define PASSWORD "wifi-pass"
-#define MQTT_BROKER "mqtt-address"
+#define MQTT_BROKER "broker-address"
 #define MQTT_BROKER_PORT 1883
 #define RECEIVE_TOPIC "unibo/esiot2024/temp-monitor/backend"
 
