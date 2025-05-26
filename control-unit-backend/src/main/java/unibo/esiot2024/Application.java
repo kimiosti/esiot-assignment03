@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import io.vertx.core.Vertx;
 import jssc.SerialPortException;
 import unibo.esiot2024.central.impl.CentralControllerImpl;
+import unibo.esiot2024.http.HTTPServer;
 import unibo.esiot2024.mqtt.MQTTAgent;
 import unibo.esiot2024.serial.SerialAgent;
 
@@ -38,7 +39,7 @@ public final class Application {
                 new SerialAgent(controller, args[2]);
                 final var vertx = Vertx.vertx();
                 vertx.deployVerticle(new MQTTAgent(controller, args[3]));
-                // TODO - init HTTPServer
+                vertx.deployVerticle(new HTTPServer(controller));
             } else {
                 Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.SEVERE, WRONG_USAGE);
             }
