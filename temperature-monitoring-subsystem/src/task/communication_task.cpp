@@ -5,15 +5,16 @@
 #define RECEIVE_TOPIC "unibo/esiot2024/temp-monitor/backend"
 
 CommunicationTask::CommunicationTask(
-    SystemStateTracker *stateTracker, SemaphoreHandle_t sharedDataMutex, PubSubClient *mqttClient
+    SystemStateTracker *stateTracker,
+    SemaphoreHandle_t sharedDataMutex,
+    PubSubClient *mqttClient,
+    SemaphoreHandle_t networkClientsMutex
 ) {
     this->stateTracker = stateTracker;
     this->sharedDataMutex = sharedDataMutex;
     this->mqttClient = mqttClient;
-
-    while(!xSemaphoreTake(sharedDataMutex, DEFAULT_PERIOD / portTICK_PERIOD_MS)) { }
-    this->period = stateTracker->getcurrentFrequency();
-    xSemaphoreGive(sharedDataMutex);
+    this->networkClientsMutex = networkClientsMutex;
+    this->period = DEFAULT_PERIOD;
 }
 
 void CommunicationTask::run(void *params) {
@@ -28,9 +29,10 @@ void CommunicationTask::run(void *params) {
 }
 
 void CommunicationTask::update() {
-    this->mqttClient->loop();
-
-    if (xSemaphoreTake(this->sharedDataMutex, this->period / portTICK_PERIOD_MS)) {
+    if (
+        xSemaphoreTake(this->sharedDataMutex, pdMS_TO_TICKS(this->period / 2))
+        && xSemaphoreTake(this->networkClientsMutex, pdMS_TO_TICKS(this->period / 2))
+    ) {
         float measure = this->stateTracker->getLastMeasure();
         this->period = this->stateTracker->getcurrentFrequency();
         xSemaphoreGive(this->sharedDataMutex);
@@ -41,6 +43,7 @@ void CommunicationTask::update() {
         msg.concat(" }");
 
         this->mqttClient->publish(SEND_TOPIC, msg.c_str());
+        xSemaphoreGive(this->networkClientsMutex);
     }
 }
 

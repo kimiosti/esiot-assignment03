@@ -13,6 +13,7 @@ class NetworkMonitoringTask: public Task {
         PubSubClient *mqttClient;
         SystemStateTracker *stateTracker;
         SemaphoreHandle_t sharedDataMutex;
+        SemaphoreHandle_t networkClientsMutex;
 
     public:
         NetworkMonitoringTask(
@@ -20,7 +21,8 @@ class NetworkMonitoringTask: public Task {
             WiFiClient *wifiClient,
             PubSubClient *mqttClient,
             SystemStateTracker *stateTracker,
-            SemaphoreHandle_t sharedDataMutex
+            SemaphoreHandle_t sharedDataMutex,
+            SemaphoreHandle_t networkClientsMutex
         );
         void run(void *params);
         void update();

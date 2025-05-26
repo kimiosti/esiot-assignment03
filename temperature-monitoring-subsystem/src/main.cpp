@@ -21,6 +21,7 @@ SemaphoreHandle_t stateTrackerMutex;
 
 WiFiClient *wifiClient;
 PubSubClient *mqttClient;
+SemaphoreHandle_t networkClientsMutex;
 
 TemperatureMeasuringTask *temperatureTask;
 TaskHandle_t *tempTaskHandler;
@@ -49,6 +50,7 @@ void setup() {
 
   wifiClient = new WiFiClient();
   mqttClient = new PubSubClient(*wifiClient);
+  networkClientsMutex = xSemaphoreCreateMutex();
 
   temperatureTask = new TemperatureMeasuringTask(TEMP_SENSOR_PIN, stateTracker, stateTrackerMutex);
   tempTaskHandler = new TaskHandle_t();
@@ -59,7 +61,8 @@ void setup() {
     wifiClient,
     mqttClient,
     stateTracker,
-    stateTrackerMutex
+    stateTrackerMutex,
+    networkClientsMutex
   );
   networkTaskHandler = new TaskHandle_t();
   xTaskCreatePinnedToCore(
@@ -73,7 +76,7 @@ void setup() {
   );
 
   mqttClient->setCallback(callback);
-  communicationTask = new CommunicationTask(stateTracker, stateTrackerMutex, mqttClient);
+  communicationTask = new CommunicationTask(stateTracker, stateTrackerMutex, mqttClient, networkClientsMutex);
   communicationTaskHandler = new TaskHandle_t();
   xTaskCreatePinnedToCore(
     runTask, "CommTask", DEFAULT_STACK_DEPTH, (void*)communicationTask, DEFAULT_TASK_PRIORITY, communicationTaskHandler, 0

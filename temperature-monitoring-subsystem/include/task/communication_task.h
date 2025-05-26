@@ -11,10 +11,14 @@ class CommunicationTask: public Task {
         SystemStateTracker *stateTracker;
         SemaphoreHandle_t sharedDataMutex;
         PubSubClient *mqttClient;
+        SemaphoreHandle_t networkClientsMutex;
 
     public:
         CommunicationTask(
-            SystemStateTracker *stateTracker, SemaphoreHandle_t sharedDataMutex, PubSubClient *mqttClient
+            SystemStateTracker *stateTracker,
+            SemaphoreHandle_t sharedDataMutex,
+            PubSubClient *mqttClient,
+            SemaphoreHandle_t networkClientsMutex
         );
         void run(void *params);
         void update();
