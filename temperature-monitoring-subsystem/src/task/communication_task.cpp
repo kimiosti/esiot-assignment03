@@ -37,6 +37,8 @@ void CommunicationTask::update() {
         this->period = this->stateTracker->getcurrentFrequency();
         xSemaphoreGive(this->sharedDataMutex);
 
+        this->mqttClient->loop();
+
         String msg;
         msg.concat("{ \"temp\": ");
         msg.concat(String(measure, 1U));
