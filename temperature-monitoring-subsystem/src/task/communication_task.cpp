@@ -1,5 +1,4 @@
 #include "task/communication_task.h"
-#include "utils/temperature_measure.h"
 
 #define DEFAULT_PERIOD 200
 #define SEND_TOPIC "unibo/esiot2024/temp-monitor/temp-monitor"
@@ -32,17 +31,13 @@ void CommunicationTask::update() {
     this->mqttClient->loop();
 
     if (xSemaphoreTake(this->sharedDataMutex, this->period / portTICK_PERIOD_MS)) {
-        TemperatureMeasure *measure = this->stateTracker->getLastMeasure();
+        float measure = this->stateTracker->getLastMeasure();
         this->period = this->stateTracker->getcurrentFrequency();
         xSemaphoreGive(this->sharedDataMutex);
 
         String msg;
         msg.concat("{ \"temp\": ");
-        msg.concat(String(measure->getTemperature(), 1U));
-        msg.concat(", \"date\": ");
-        msg.concat(measure->getDate());
-        msg.concat(", \"time\": ");
-        msg.concat(measure->getTime());
+        msg.concat(String(measure, 1U));
         msg.concat(" }");
 
         this->mqttClient->publish(SEND_TOPIC, msg.c_str());

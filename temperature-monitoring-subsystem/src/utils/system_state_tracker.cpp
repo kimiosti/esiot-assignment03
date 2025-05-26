@@ -1,10 +1,11 @@
 #include "utils/system_state_tracker.h"
 
 #define DEFAULT_FREQUENCY 1000
+#define DEFAULT_MEASURE 0.0
 
 SystemStateTracker::SystemStateTracker() {
     this->frequency = DEFAULT_FREQUENCY;
-    this->temperatureMeasure = new TemperatureMeasure(0.0, String("0000-00-00"), String("00:00:00"));
+    this->temperatureMeasure = DEFAULT_MEASURE;
     this->online = false;
     this->subscribed = false;
 }
@@ -13,7 +14,7 @@ unsigned long SystemStateTracker::getcurrentFrequency() {
     return this->frequency;
 }
 
-TemperatureMeasure* SystemStateTracker::getLastMeasure() {
+float SystemStateTracker::getLastMeasure() {
     return this->temperatureMeasure;
 }
 
@@ -29,8 +30,7 @@ void SystemStateTracker::setFrequency(unsigned long frequency) {
     this->frequency = frequency;
 }
 
-void SystemStateTracker::recordMeasure(TemperatureMeasure *measure) {
-    delete this->temperatureMeasure;
+void SystemStateTracker::recordMeasure(float measure) {
     this->temperatureMeasure = measure;
 }
 

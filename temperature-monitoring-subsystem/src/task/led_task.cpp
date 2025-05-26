@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "task/led_task.h"
 
 LEDTask::LEDTask(

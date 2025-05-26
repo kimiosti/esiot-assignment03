@@ -9,7 +9,6 @@
 class NetworkMonitoringTask: public Task {
     private:
         long period;
-        bool timeSet;
         WiFiClient *wifiClient;
         PubSubClient *mqttClient;
         SystemStateTracker *stateTracker;
