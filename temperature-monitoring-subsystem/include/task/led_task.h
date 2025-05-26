@@ -14,7 +14,7 @@ class LEDTask: public Task {
         SemaphoreHandle_t sharedDataMutex;
 
     public:
-        LEDTask(long period, SystemStateTracker *stateTracker, SemaphoreHandle_t sharedDataMutex);
+        LEDTask(long period, int redPin, int greenPin, SystemStateTracker *stateTracker, SemaphoreHandle_t sharedDataMutex);
         void run(void *params);
         void update();
 };

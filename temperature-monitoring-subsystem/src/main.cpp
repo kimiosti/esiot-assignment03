@@ -4,6 +4,9 @@
 #include "task/communication_task.h"
 #include "task/led_task.h"
 
+#define RED_LED_PIN 5
+#define GREEN_LED_PIN 4
+
 #define DEFAULT_STACK_DEPTH 10000
 #define DEFAULT_TASK_PRIORITY 1
 #define DEFAULT_TASK_ARGS NULL
@@ -65,7 +68,7 @@ void setup() {
     runTask, "CommTask", DEFAULT_STACK_DEPTH, (void*)communicationTask, DEFAULT_TASK_PRIORITY, &communicationTaskHandler, 0
   );
 
-  ledTask = new LEDTask(LED_TASK_PERIOD, stateTracker, stateTrackerMutex);
+  ledTask = new LEDTask(LED_TASK_PERIOD, RED_LED_PIN, GREEN_LED_PIN, stateTracker, stateTrackerMutex);
   ledTaskHandler = new TaskHandle_t();
   xTaskCreate(runTask, "LEDTask", DEFAULT_STACK_DEPTH, (void*)ledTask, DEFAULT_TASK_PRIORITY, ledTaskHandler);
 }

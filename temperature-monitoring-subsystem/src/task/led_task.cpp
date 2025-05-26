@@ -1,17 +1,14 @@
 #include "task/led_task.h"
 
-#define RED_LED_PIN 5
-#define GREEN_LED_PIN 4
-
 LEDTask::LEDTask(
-    long period, SystemStateTracker *stateTracker, SemaphoreHandle_t sharedDataMutex
+    long period, int redPin, int greenPin, SystemStateTracker *stateTracker, SemaphoreHandle_t sharedDataMutex
 ) {
     this->period = period;
     this->stateTracker = stateTracker;
     this->sharedDataMutex = sharedDataMutex;
 
-    this->green = new LED(GREEN_LED_PIN);
-    this->red = new LED(RED_LED_PIN);
+    this->green = new LED(greenPin);
+    this->red = new LED(redPin);
 }
 
 void LEDTask::run(void *params) {
