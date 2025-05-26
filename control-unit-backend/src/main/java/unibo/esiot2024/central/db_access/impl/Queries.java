@@ -52,7 +52,7 @@ public enum Queries {
                 SELECT AVG(temperature) AS avgTemp
                 FROM measurements
                 WHERE CURDATE() = measureDate
-                AND TIME_TO_SEC(TIMEDIFF(CURIME(), measureTime)) < 60
+                AND TIME_TO_SEC(TIMEDIFF(CURTIME(), measureTime)) < 60
                 """
     ),
 
