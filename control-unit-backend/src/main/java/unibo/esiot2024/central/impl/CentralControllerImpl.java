@@ -162,7 +162,11 @@ public final class CentralControllerImpl implements CentralController {
     }
 
     private int getOpeningLevelByTemperature(final float temperature, final Optional<SystemInfo> curValues) {
-        if (curValues.isPresent() && curValues.get().state().equals(SystemState.MANUAL)) {
+        if (
+            curValues.isPresent()
+            && (curValues.get().state().equals(SystemState.MANUAL)
+            || curValues.get().state().equals(SystemState.ALARM))
+        ) {
             return curValues.get().openingPercentage();
         } else {
             return temperature < T1 ? 0
