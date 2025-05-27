@@ -198,5 +198,9 @@
 		This component communicates with the \textit{Operator Dashboard}, handling its \textit{HTTP requests} and forwarding demands to the \textit{Central Controller}. Like the \textit{MQTT Agent}, it's implemented in Java relying on the \href{https://vertx.io/}{\textit{VertX library}}, and also like the \textit{MQTT Agent} relies on the \href{https://github.com/ekzhang/bore}{\textit{Bore tunneling tool}} to publicly open the desired port, making it effectively reachable from outside the Server's private network.
 		\subsection{Central Controller}
 		This component is the actual core of the whole system. It's responsible of all accesses to the database, to which it delegates concurrency-related issues. It's implemented in Java, relying on the \href{https://docs.oracle.com/javase/8/docs/technotes/guides/jdbc/}{\textit{native JDBC API}} to connect to the database and query it for data management.
+		
+	\chapter{System Demonstration}
+	\href{https://drive.google.com/file/d/1sJzZS7W2lpVfR6PkC-G01fWDvBJBSuEa/view?usp=drive_link}{\textit{At this link}} is available a video demonstration of the system.
+	\newline The main issue in the deployment of the system was the complex wiring required by the sub-components, which was even more constraining because I only had one breadboard available. Furthermore, the complexity of the circuit relying solely on the \textit{Arduino UNO Board} powering source (since I couldn't supply the servo motor externally) resulted in some slight issues, visible towards the end of the video when I accidentally touched a cable, probably causing some disruption in the overall system tension that caused the LCD Screen to lose its clock and data sources and displaying unintelligible characters.
 	
 \end{document}
